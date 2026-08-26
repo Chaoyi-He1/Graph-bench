@@ -358,6 +358,23 @@ definitions (Figure~\ref{fig:robust}, right) gives gpt-5.6 over Kimi-2.5 at $+0.
 the primary judge's $+0.345$ ($t = 31.7$). Absolute levels are
 judge-specific; direction, significance and ordering hold.
 
+\subsection{What the measurement is robust to}
+
+Three interventions move the score by less than the resolution they are
+measured at (Figure~\ref{fig:all}, second group). Two are unremarkable:
+attaching the original screenshots, and raising the turn budget from 20
+to 30. The third is worth stating as a result rather than as an absence.
+Replacing the model that plays the user changes the mean grade by
+$-0.0007$ ($n=48$, bound $0.061$), against a literature finding that
+swapping simulators moves measured success by up to 9 points
+\citep{lostinsimulation2026} and a self-audit in which a prompted
+simulator violated its instructions in 22\% of dialogues
+\citep{tau2bench2025}. We read this as the graph doing the work it was
+introduced to do: when the user's admissible utterances are enumerated
+by the case rather than described to a prompt, the identity of the model
+reading them matters much less. This is the one null in the paper we
+would defend as a contribution.
+
 \subsection{Leakage}
 \label{sec:leak}
 
@@ -367,15 +384,34 @@ against 0 in 913 under our production profile). The grade inflation this
 causes is \emph{not} established at our sample size ($+0.037$, $t = 1.8$,
 $p = 0.19$, $n = 48$), and we report it as such.
 
+This is the weakest row in the paper and we would rather state the
+problem than bury it: the benchmark's stated motivation is that
+transcript-conditioned simulation contaminates the dialogue, and our own
+ablation does not reach significance. Three things bear on how to read
+it. The ablation is run at $n=48$, where the smallest detectable
+difference is $0.054$ and the observed effect is $0.037$---so the
+experiment cannot presently distinguish ``no inflation'' from
+``inflation we lack the power to see''. The leak itself is not in doubt
+independently of the grade: leaked turns are directly detected by the
+screen, and a turn in which the user volunteers the fix has changed what
+the transcript \emph{is}, whether or not the judge rewards it. And the
+grade may simply be a poor detector here, since forced reveals already
+supply information the agent did not earn. We take the honest position
+that leak-safety is currently justified by the direct detection of leaks
+and not by an effect on the score.
+
 \section{Auditing the Instrument}
 \label{sec:audit}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.86\textwidth]{figures/f6_all_comparisons.pdf}
-\caption{Every comparison, with a 99\% interval. The final row is the
-same configuration run twice: interventions that changed nothing sit
-where re-running sits.}
+\caption{Every comparison, with a 99\% interval, grouped by what a null
+would mean. A simulator swap that moves nothing is the result we want;
+the leak ablation moving nothing is not. Each null is annotated with the
+effect it can actually exclude---at $n=48$ that bound is $\pm0.06$,
+more than twice the resolution of the $n=229$ rows, so these are bounds
+rather than absences.}
 \label{fig:all}
 \end{figure}
 
@@ -440,9 +476,16 @@ ranking, and the rubrics track a judge-independent count---and neither is
 equivalent; two models agreeing is not correctness. Mitigating this, the
 tier result is also established on judge-free counts alone, so the
 central comparison does not rest on the judge, though the rubric-level
-readings do. Per-case grades are unstable across identical runs
-(Figure~\ref{fig:reliability}; mean absolute drift 0.10--0.12), so no
-claim rests on an individual case.
+readings do. \textbf{The instrument has a resolution, and several of our own
+interventions sit below it.} Per-case grades are unstable across
+identical runs (Figure~\ref{fig:reliability}; mean absolute drift
+0.10--0.12), so no claim rests on an individual case. Aggregated, the
+99\% interval is $\pm0.026$ at $n=229$ and $\pm0.06$ at the $n=48$ used
+for most harness interventions. The model comparisons we report are
+$5$--$13\times$ that floor and are safe; the interventions are tested at
+less than half the resolution of the comparisons, and every null among
+them should be read as the bound printed in Figure~\ref{fig:all}
+rather than as evidence of no effect.
 \texttt{reached\_terminal} saturates once cases use their full budget and
 is reported as harness health rather than as an agent metric. Threads are
 English-only and from open-source projects.
