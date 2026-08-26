@@ -1,4 +1,3 @@
-
 \documentclass{article} % For LaTeX2e
 \usepackage{iclr2026_conference,times}
 
@@ -7,408 +6,390 @@
 
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
 
-
-\title{Formatting Instructions for ICLR 2026 \\ Conference Submissions}
+\title{Diagnosis Without Execution: Causal-Graph Cases for\\
+Multi-Turn Debugging Agents}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
 % Non-anonymous submissions will be rejected without review.
 
-\author{Antiquus S.~Hippocampus, Natalia Cerebro \& Amelie P. Amygdale \thanks{ Use footnote for providing further information
-about author (webpage, alternative address)---\emph{not} for acknowledging
-funding agencies.  Funding acknowledgements go at the end of the paper.} \\
-Department of Computer Science\\
-Cranberry-Lemon University\\
-Pittsburgh, PA 15213, USA \\
-\texttt{\{hippo,brain,jen\}@cs.cranberry-lemon.edu} \\
-\And
-Ji Q. Ren \& Yevgeny LeNet \\
-Department of Computational Neuroscience \\
-University of the Witwatersrand \\
-Joburg, South Africa \\
-\texttt{\{robot,net\}@wits.ac.za} \\
-\AND
-Coauthor \\
-Affiliation \\
-Address \\
-\texttt{email}
-}
-
-% The \author macro works with any number of authors. There are two commands
-% used to separate the names and addresses of multiple authors: \And and \AND.
-%
-% Using \And between authors leaves it to \LaTeX{} to determine where to break
-% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
-% puts 3 of 4 authors names on the first line, and the last on the second
-% line, try using \AND instead of \And before the third author name.
-
-\newcommand{\fix}{\marginpar{FIX}}
-\newcommand{\new}{\marginpar{NEW}}
+\author{Anonymous authors\\
+Paper under double-blind review}
 
 %\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
 \begin{document}
 
-
 \maketitle
 
 \begin{abstract}
-The abstract paragraph should be indented 1/2~inch (3~picas) on both left and
-right-hand margins. Use 10~point type, with a vertical spacing of 11~points.
-The word \textsc{Abstract} must be centered, in small caps, and in point size 12. Two
-line spaces precede the abstract. The abstract must be limited to one
-paragraph.
+An agent that debugs \emph{with a person} must elicit the evidence a fix
+depends on, avoid the attempts already known to fail, and ground its
+conclusion in what the user actually reported. Existing multi-turn
+benchmarks measure none of this directly: they either require a
+reproducible execution environment---which excludes precisely the
+environment-bound problems users bring---or condition a simulated user on
+the resolved transcript, leaking the answer into the dialogue. We
+annotate 229 resolved public support threads as causal graphs whose nodes
+are (system-state, information-state) pairs and whose edges are
+clarifications, solutions, and attempts the thread itself falsified. The
+same graph constrains a leak-safe user simulator, grounds an
+execution-free judge, and yields metrics that need no model at all. Four
+frontier models separate into two tiers 0.32--0.35 apart, and the split
+reproduces under a judge from a different model family and under
+judge-free counts alone. Two results are less comfortable: on staying
+inside the evidence the strongest models score 0.64--0.71 and the weaker
+pair 0.05--0.09, and when a single authored answer is swapped for a
+plausible alternative, the strongest model stops being able to close the
+case at all 72\% of the time---it does not adapt, it derails. We also
+report what auditing the harness cost: before repair, only 7--11\% of the
+benchmark's own intervention events reflected genuine agent failure.
 \end{abstract}
 
-\section{Submission of conference papers to ICLR 2026}
+\section{Introduction}
 
-ICLR requires electronic submissions, processed by
-\url{https://openreview.net/}. See ICLR's website for more instructions.
+Debugging with a user is an elicitation problem before it is a repair
+problem. The information a fix depends on is usually not in the report:
+in our corpus 79\% of the facts a resolution turns on had to be asked
+for or measured. An agent that proposes early proposes blind.
 
-If your paper is ultimately accepted, the statement {\tt
-  {\textbackslash}iclrfinalcopy} should be inserted to adjust the
-format to the camera ready requirements.
+Benchmarks for multi-turn software agents take one of two routes, and
+both lose the thing we want to measure. Execution-grounded suites
+\citep{swebench2024} need a containerised reproduction, which
+systematically excludes the environment-bound faults real users
+report---drivers, devices, OS integration, account state. Simulated-user
+suites \citep{taubench2024,cab2025} avoid that cost by scripting the
+user, and typically condition the simulator on the resolved thread, so
+the user knows the answer and the dialogue is no longer a diagnosis.
 
-The format for the submissions is a variant of the NeurIPS format.
-Please read carefully the instructions below, and follow them
-faithfully.
+We take a third route. Each case is a resolved public thread annotated as
+a causal graph: nodes are (system-state, information-state) pairs, edges
+are clarifications the user can answer, solutions with required elements,
+and attempts this thread tried and falsified. The graph is an answer key,
+not a transcript to replay. The same object then does three jobs: it
+bounds what the simulated user may say (it speaks only from its current
+node), it gives an execution-free judge something to score against, and
+it makes several metrics deterministic---derivable from the transcript
+with no model in the loop.
 
-\subsection{Style}
+Our contributions:
 
-Papers to be submitted to ICLR 2026 must be prepared according to the
-instructions presented here.
+\begin{enumerate}
+\item A DSL and a corpus: 229 released cases over 75 projects, each
+      machine-validated and passed by a two-stage model review, with the
+      falsified attempts annotated as first-class structure.
+\item An evaluation protocol whose central comparison does not depend on
+      an LLM judge, and a measurement of what the judge adds where it is
+      used.
+\item Results on four frontier models, including a counterfactual
+      intervention study that the corpus design uniquely enables.
+\item An audit of the harness itself. We report the defects we found in
+      our own instrument, and what each was worth, because several of
+      them would have been read as model behaviour.
+\end{enumerate}
 
-%% Please note that we have introduced automatic line number generation
-%% into the style file for \LaTeXe. This is to help reviewers
-%% refer to specific lines of the paper when they make their comments. Please do
-%% NOT refer to these line numbers in your paper as they will be removed from the
-%% style file for the final version of accepted papers.
+\section{Related Work}
+\label{sec:related}
 
-Authors are required to use the ICLR \LaTeX{} style files obtainable at the
-ICLR website. Please make sure you use the current files and
-not previous versions. Tweaking the style files may be grounds for rejection.
+\textbf{Execution-grounded agent benchmarks.} SWE-bench
+\citep{swebench2024} and its descendants score a patch against a test
+suite. This is decisive where it applies and inapplicable where
+reproduction is the hard part. CAB \citep{cab2025} builds multi-turn
+cases from real GitHub issues but keeps Docker execution, and its own
+limitations section reports the resulting selection bias toward
+actively-maintained modern repositories. That the cost is affordable is
+itself evidence: forbidding execution outright costs a commercial agent
+only 1.25 points of resolve rate \citep{torun2026}, and execution-free
+critics predict build status at 82\% \citep{llmcritics2025,swejudge2025}.
+We give up execution deliberately, and buy back the environment-bound
+faults it excludes.
 
-\subsection{Retrieval of style files}
+\textbf{Simulated-user benchmarks.} The $\tau$-family
+\citep{taubench2024,tau2bench2025}, CAB \citep{cab2025}, and
+dialogue-form SWE suites \citep{dialogueswe2026,cirrusbench2026} place an
+LLM in the user's seat. Fidelity is the open question, and the field's
+own audits are unflattering: $\tau^2$ found its simulator violating its
+instructions in 22\% of one domain's dialogues \citep{tau2bench2025}, and
+swapping simulators moves measured success by up to 9 points
+\citep{lostinsimulation2026}. A simulator conditioned on the resolution
+can leak it, and the leak is invisible in aggregate scores. We constrain
+the simulator with the graph rather than with a prompt, and measure the
+leak directly in Section~\ref{sec:leak}.
 
-The style files for ICLR and other conference information are available online at:
-\begin{center}
-   \url{http://www.iclr.cc/}
-\end{center}
-The file \verb+iclr2026_conference.pdf+ contains these
-instructions and illustrates the
-various formatting requirements your ICLR paper must satisfy.
-Submissions must be made using \LaTeX{} and the style files
-\verb+iclr2026_conference.sty+ and \verb+iclr2026_conference.bst+ (to be used with \LaTeX{}2e). The file
-\verb+iclr2026_conference.tex+ may be used as a ``shell'' for writing your paper. All you
-have to do is replace the author, title, abstract, and text of the paper with
-your own.
+\textbf{Graph- and state-structured evaluation.} Fault trees
+\citep{jfta2026} and incident graphs \citep{excytin2026} also score
+progress through structure rather than through a final artifact. Their
+structures are predefined domain knowledge or recorded logs; ours is
+extracted per-case from the thread that resolved it, and carries the
+attempts that thread \emph{falsified} as first-class edges---which is
+what makes a counterfactual intervention well-posed.
 
-The formatting instructions contained in these style files are summarized in
-sections \ref{gen_inst}, \ref{headings}, and \ref{others} below.
+\textbf{Clarification and elicitation.} A line of work scores whether a
+model asks a question at all, or resolves a stated ambiguity
+\citep{in3_2024,ambigswe2026,userbench2025,multichallenge2025};
+multi-turn degradation is well documented \citep{lostinconversation2025}.
+We score something narrower and checkable: whether the agent obtained the
+specific evidence its own proposal required, at the moment it proposed.
 
-\section{General formatting instructions}
-\label{gen_inst}
+\section{Task Formulation}
+\label{sec:task}
 
-The text must be confined within a rectangle 5.5~inches (33~picas) wide and
-9~inches (54~picas) long. The left margin is 1.5~inch (9~picas).
-Use 10~point type with a vertical spacing of 11~points. Times New Roman is the
-preferred typeface throughout. Paragraphs are separated by 1/2~line space,
-with no indentation.
-
-Paper title is 17~point, in small caps and left-aligned.
-All pages should start at 1~inch (6~picas) from the top of the page.
-
-Authors' names are
-set in boldface, and each name is placed above its corresponding
-address. The lead author's name is to be listed first, and
-the co-authors' names are set to follow. Authors sharing the
-same address can be on the same line.
-
-Please pay special attention to the instructions in section \ref{others}
-regarding figures, tables, acknowledgments, and references.
-
-
-There will be a strict upper limit of \textbf{9 pages} for the main text of the initial submission, with unlimited additional pages for citations. This limit will be expanded to \textbf{10 pages} for rebuttal/camera ready.
-
-\section{Headings: first level}
-\label{headings}
-
-First level headings are in small caps,
-flush left and in point size 12. One line space before the first level
-heading and 1/2~line space after the first level heading.
-
-\subsection{Headings: second level}
-
-Second level headings are in small caps,
-flush left and in point size 10. One line space before the second level
-heading and 1/2~line space after the second level heading.
-
-\subsubsection{Headings: third level}
-
-Third level headings are in small caps,
-flush left and in point size 10. One line space before the third level
-heading and 1/2~line space after the third level heading.
-
-\section{Citations, figures, tables, references}
-\label{others}
-
-These instructions apply to everyone, regardless of the formatter being used.
-
-\subsection{Citations within the text}
-
-Citations within the text should be based on the \texttt{natbib} package
-and include the authors' last names and year (with the ``et~al.'' construct
-for more than two authors). When the authors or the publication are
-included in the sentence, the citation should not be in parenthesis using \verb|\citet{}| (as
-in ``See \citet{Hinton06} for more information.''). Otherwise, the citation
-should be in parenthesis using \verb|\citep{}| (as in ``Deep learning shows promise to make progress
-towards AI~\citep{Bengio+chapter2007}.'').
-
-The corresponding references are to be listed in alphabetical order of
-authors, in the \textsc{References} section. As to the format of the
-references themselves, any style is acceptable as long as it is used
-consistently.
-
-\subsection{Footnotes}
-
-Indicate footnotes with a number\footnote{Sample of the first footnote} in the
-text. Place the footnotes at the bottom of the page on which they appear.
-Precede the footnote with a horizontal rule of 2~inches
-(12~picas).\footnote{Sample of the second footnote}
-
-\subsection{Figures}
-
-All artwork must be neat, clean, and legible. Lines should be dark
-enough for purposes of reproduction; art work should not be
-hand-drawn. The figure number and caption always appear after the
-figure. Place one line space before the figure caption, and one line
-space after the figure. The figure caption is lower case (except for
-first word and proper nouns); figures are numbered consecutively.
-
-Make sure the figure caption does not get separated from the figure.
-Leave sufficient space to avoid splitting the figure and figure caption.
-
-You may use color figures.
-However, it is best for the
-figure captions and the paper body to make sense if the paper is printed
-either in black/white or in color.
-\begin{figure}[h]
-\begin{center}
-%\framebox[4.0in]{$\;$}
-\fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-\end{center}
-\caption{Sample figure caption.}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/f1_worked_case.pdf}
+\caption{One case as a causal graph. Solid: the diagnostic path. Dotted:
+the attempt this thread actually made and falsified, together with the
+aftermath state it leads to. An agent may take the falsified branch---the
+case's satisfaction conditions forbid \emph{reporting} it as the fix.}
+\label{fig:case}
 \end{figure}
 
-\subsection{Tables}
+Figure~\ref{fig:case} shows a complete case. A case is a directed
+graph over states. A state pairs a system state with
+an information state: what is true of the system, and what has been
+established in the conversation. Edges are of three kinds.
+\emph{Clarification} edges carry one or more facts the user can supply,
+each labelled by how hard it is to obtain: \textbf{L1} any user states it
+unprompted, \textbf{L2} inferable from evidence already surfaced,
+\textbf{L3} must be asked for or measured. \emph{Solution} edges carry an
+intent, a concrete example, and the elements a reply must contain to
+count as that fix, plus the information the fix depends on.
+\emph{Known-blind} edges are solutions the thread tried and falsified;
+they lead to aftermath states from which the investigation continues.
 
-All tables must be centered, neat, clean and legible. Do not use hand-drawn
-tables. The table number and title always appear before the table. See
-Table~\ref{sample-table}.
+Two derived layers are generated rather than authored: rollback edges out
+of every aftermath state, and shortcut copies of a solution edge planted
+at earlier states that share its system state, which let an agent skip
+evidence---and let the judge grade the skip.
 
-Place one line space before the table title, one line space after the table
-title, and one line space after the table. The table title must be lower case
-(except for first word and proper nouns); tables are numbered consecutively.
+\textbf{The answer-key principle.} The out-edges of a state are what
+\emph{could} happen there, not a replay of what the historical
+participants did. This is what makes a counterfactual intervention
+meaningful (Section~\ref{sec:cf}).
+
+\section{Corpus}
+\label{sec:corpus}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/f8_corpus.pdf}
+\caption{Corpus shape. Most evidence a resolution depends on has to be
+asked for: 79\% of clarifications are L3.}
+\label{fig:corpus}
+\end{figure}
+
+The corpus (Figure~\ref{fig:corpus}) holds 229 released cases across 75
+projects, no project exceeding 4\% of the corpus, drawn from Mozilla
+Bugzilla, PostgreSQL, and permissive-license GitHub repositories, threads
+created 2021--2026 (median 37 messages). Cases are drafted by a model
+from the thread and gated by schema validators and structural lints; a
+two-stage review then files findings and independently verifies them.
+Single-pass review refuses roughly 95\% of cases, mostly on claims its
+own evidence does not support; verification is what makes model review
+usable as a release gate. Of 29 cases blocked in the first round, 25
+passed after redrafting under hardened rules---their defects came from
+the generation prompt, not from the threads.
+
+\textbf{Not recall-solvable.} Handed the opening report alone, with no
+opportunity to ask anything, a model names both mechanism and fix class
+in 2.2\% of cases (partial credit in a further 3.5\%), with no gradient
+by issue year. The benchmark measures interactive diagnosis, not
+memorisation.
+
+\section{Evaluation Protocol}
+\label{sec:protocol}
+
+\textbf{The simulated user} speaks only from its current graph position:
+that state's visible symptoms, authored answers to clarifications the
+agent actually asked, and---when a stall-insurance mechanism fires---a
+reveal that is recorded as such. It is never shown the resolution.
+
+\textbf{Matching.} Each agent turn is read for both acts. A question is
+matched against the case's clarifications; a proposal against the current
+state's solution edges, producing a \emph{solution call} that records
+which required information the agent held at that moment, by level.
+
+\textbf{Metrics.} Case outcomes (\texttt{terminal\_resolved}, forced
+walk, ran out), turns, forced reveals per case, and premature proposals
+per case are deterministic given the transcript. On top of these, four
+LLM rubrics---asks for evidence before proposing, stays inside the
+evidence, accounts for the fault, recovers from a failed step---combine
+with the graph-supplied grounding rate into a single \texttt{grade}.
+
+\textbf{Ruling on a difference.} Per-case grades are paired across arms.
+A difference is called real only when $|t| > 2.6$ \emph{and} a two-sided
+sign test gives $p < 0.01$. This replaced an earlier rule of ``at least
+twice the run-to-run drift'', which ignores sample size and consequently
+misruled in both directions.
+
+\section{Experiments}
+\label{sec:exp}
 
 \begin{table}[t]
-\caption{Sample table title}
-\label{sample-table}
-\begin{center}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{\bf PART}  &\multicolumn{1}{c}{\bf DESCRIPTION}
-\\ \hline \\
-Dendrite         &Input terminal \\
-Axon             &Output terminal \\
-Soma             &Cell body (contains cell nucleus) \\
+\caption{Four models over all 229 cases, 30 turns.}
+\label{tab:main}
+\centering
+\begin{tabular}{lrrrrrr}
+\toprule
+model & grade & resolved & forced walk & ran out & turns & reveals/case \\
+\midrule
+gpt-5.6  & \textbf{0.624} & 66 (29\%) & 110 (48\%) & 45 (20\%) & 21 & 3.1 \\
+gpt-5.5  & \textbf{0.574} & 71 (31\%) & 103 (45\%) & 47 (21\%) & 20 & 2.8 \\
+GLM-5.1  & \textbf{0.303} & 59 (26\%) & 115 (50\%) & 49 (21\%) & 22 & 3.7 \\
+Kimi-2.5 & \textbf{0.279} & 52 (23\%) & 103 (45\%) & 70 (31\%) & 21 & 4.0 \\
+\bottomrule
 \end{tabular}
-\end{center}
 \end{table}
 
-\section{Default Notation}
+Table~\ref{tab:main} gives the main result. Two tiers separate by
+0.32--0.35 ($t = 32$); within the stronger tier gpt-5.6 leads gpt-5.5 by
+0.050 ($t = 5.3$), and between GLM-5.1 and Kimi-2.5 there is nothing to
+call. Fewer than a third of cases end in a fix the agent earned, and
+roughly half reach a terminal state only because the insurance walked
+them there.
 
-In an attempt to encourage standardized notation, we have included the
-notation file from the textbook, \textit{Deep Learning}
-\cite{goodfellow2016deep} available at
-\url{https://github.com/goodfeli/dlbook_notation/}.  Use of this style
-is not required and can be disabled by commenting out
-\texttt{math\_commands.tex}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/f2_rubrics.pdf}
+\caption{The tiers separate on all four rubrics and never cross. The
+deepest gap is staying inside the evidence.}
+\label{fig:rubrics}
+\end{figure}
 
+\subsection{Where the weaker tier loses}
 
-\centerline{\bf Numbers and Arrays}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1in}p{3.25in}}
-$\displaystyle a$ & A scalar (integer or real)\\
-$\displaystyle \va$ & A vector\\
-$\displaystyle \mA$ & A matrix\\
-$\displaystyle \tA$ & A tensor\\
-$\displaystyle \mI_n$ & Identity matrix with $n$ rows and $n$ columns\\
-$\displaystyle \mI$ & Identity matrix with dimensionality implied by context\\
-$\displaystyle \ve^{(i)}$ & Standard basis vector $[0,\dots,0,1,0,\dots,0]$ with a 1 at position $i$\\
-$\displaystyle \text{diag}(\va)$ & A square, diagonal matrix with diagonal entries given by $\va$\\
-$\displaystyle \ra$ & A scalar random variable\\
-$\displaystyle \rva$ & A vector-valued random variable\\
-$\displaystyle \rmA$ & A matrix-valued random variable\\
+Figure~\ref{fig:rubrics} localises the gap. It is not confined to any one
+rubric, and the largest is \emph{staying inside the evidence}: the GPT
+pair scores 0.64--0.71, the other two 0.05--0.09---asserting what their
+conversations do not support in nearly every case.
+
+\subsection{The central comparison does not need the judge}
+
+Two per-case counts involve no model scoring: forced reveals, and
+proposals made from a state whose graph offers no solution edge. Paired
+across the same 229 cases, every cross-tier comparison separates
+(premature proposals $+1.41$ and $+1.64$, $t = 6.7$ and $6.9$) and every
+within-tier comparison does not---the same partition
+Table~\ref{tab:main} reports, obtained by counting rather than scoring.
+
+\subsection{Counterfactual interventions}
+\label{sec:cf}
+
+The corpus authors, for clarifications that mattered, an alternative
+answer the reporter could plausibly have given, marked with whether the
+right fix changes as a result. Replaying a case with one answer swapped
+asks whether the agent is conditioning on what the user said. Drawing 60
+interventions only from cases whose baseline run closes unaided gives
+Table~\ref{tab:cf}:
+
+\begin{table}[h]
+\caption{One authored answer swapped, gpt-5.6, $n=60$.}
+\label{tab:cf}
+\centering
+\begin{tabular}{lrr}
+\toprule
+ & fix should change & fix should not change \\
+\midrule
+proposed something different & \textbf{5 (17\%)} & 2 (7\%) \\
+proposed the same thing & 5 (17\%) & \textbf{5 (17\%)} \\
+never reached a proposal of its own & 20 (67\%) & 23 (77\%) \\
+\bottomrule
 \end{tabular}
-\egroup
-\vspace{0.25cm}
+\end{table}
 
-\centerline{\bf Sets and Graphs}
-\bgroup
-\def\arraystretch{1.5}
+Changing one answer stops the agent closing the case at all 72\% of the
+time. It does not switch to a different fix; it stops converging---and it
+derails \emph{more} often when the change was marked as not affecting the
+diagnosis. On the 17 cases that stayed on the rails, five of ten
+interventions that should have changed the fix did.
 
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle \sA$ & A set\\
-$\displaystyle \R$ & The set of real numbers \\
-$\displaystyle \{0, 1\}$ & The set containing 0 and 1 \\
-$\displaystyle \{0, 1, \dots, n \}$ & The set of all integers between $0$ and $n$\\
-$\displaystyle [a, b]$ & The real interval including $a$ and $b$\\
-$\displaystyle (a, b]$ & The real interval excluding $a$ but including $b$\\
-$\displaystyle \sA \backslash \sB$ & Set subtraction, i.e., the set containing the elements of $\sA$ that are not in $\sB$\\
-$\displaystyle \gG$ & A graph\\
-$\displaystyle \parents_\gG(\ervx_i)$ & The parents of $\ervx_i$ in $\gG$
-\end{tabular}
-\vspace{0.25cm}
+\subsection{Does the result survive a different judge?}
 
+The primary judge is from the same family as one of the models it ranks.
+Re-judging the same transcripts with GLM-5.1 under identical rubric
+definitions gives gpt-5.6 over Kimi-2.5 at $+0.189$ ($t = 17.7$) against
+the primary judge's $+0.345$ ($t = 31.7$). Absolute levels are
+judge-specific; direction, significance and ordering hold.
 
-\centerline{\bf Indexing}
-\bgroup
-\def\arraystretch{1.5}
+\subsection{Leakage}
+\label{sec:leak}
 
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle \eva_i$ & Element $i$ of vector $\va$, with indexing starting at 1 \\
-$\displaystyle \eva_{-i}$ & All elements of vector $\va$ except for element $i$ \\
-$\displaystyle \emA_{i,j}$ & Element $i, j$ of matrix $\mA$ \\
-$\displaystyle \mA_{i, :}$ & Row $i$ of matrix $\mA$ \\
-$\displaystyle \mA_{:, i}$ & Column $i$ of matrix $\mA$ \\
-$\displaystyle \etA_{i, j, k}$ & Element $(i, j, k)$ of a 3-D tensor $\tA$\\
-$\displaystyle \tA_{:, :, i}$ & 2-D slice of a 3-D tensor\\
-$\displaystyle \erva_i$ & Element $i$ of the random vector $\rva$ \\
-\end{tabular}
-\egroup
-\vspace{0.25cm}
+Handing the simulator the resolved thread---the transcript-conditioned
+design---produces leaked turns that a lexical screen detects (3 in 916
+against 0 in 913 under our production profile). The grade inflation this
+causes is \emph{not} established at our sample size ($+0.037$, $t = 1.8$,
+$p = 0.19$, $n = 48$), and we report it as such.
 
+\section{Auditing the Instrument}
+\label{sec:audit}
 
-\centerline{\bf Calculus}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-% NOTE: the [2ex] on the next line adds extra height to that row of the table.
-% Without that command, the fraction on the first line is too tall and collides
-% with the fraction on the second line.
-$\displaystyle\frac{d y} {d x}$ & Derivative of $y$ with respect to $x$\\ [2ex]
-$\displaystyle \frac{\partial y} {\partial x} $ & Partial derivative of $y$ with respect to $x$ \\
-$\displaystyle \nabla_\vx y $ & Gradient of $y$ with respect to $\vx$ \\
-$\displaystyle \nabla_\mX y $ & Matrix derivatives of $y$ with respect to $\mX$ \\
-$\displaystyle \nabla_\tX y $ & Tensor containing derivatives of $y$ with respect to $\tX$ \\
-$\displaystyle \frac{\partial f}{\partial \vx} $ & Jacobian matrix $\mJ \in \R^{m\times n}$ of $f: \R^n \rightarrow \R^m$\\
-$\displaystyle \nabla_\vx^2 f(\vx)\text{ or }\mH( f)(\vx)$ & The Hessian matrix of $f$ at input point $\vx$\\
-$\displaystyle \int f(\vx) d\vx $ & Definite integral over the entire domain of $\vx$ \\
-$\displaystyle \int_\sS f(\vx) d\vx$ & Definite integral with respect to $\vx$ over the set $\sS$ \\
-\end{tabular}
-\egroup
-\vspace{0.25cm}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/f6_all_comparisons.pdf}
+\caption{Every comparison, with a 99\% interval. The final row is the
+same configuration run twice: interventions that changed nothing sit
+where re-running sits.}
+\label{fig:all}
+\end{figure}
 
-\centerline{\bf Probability and Information Theory}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle P(\ra)$ & A probability distribution over a discrete variable\\
-$\displaystyle p(\ra)$ & A probability distribution over a continuous variable, or over
-a variable whose type has not been specified\\
-$\displaystyle \ra \sim P$ & Random variable $\ra$ has distribution $P$\\% so thing on left of \sim should always be a random variable, with name beginning with \r
-$\displaystyle  \E_{\rx\sim P} [ f(x) ]\text{ or } \E f(x)$ & Expectation of $f(x)$ with respect to $P(\rx)$ \\
-$\displaystyle \Var(f(x)) $ &  Variance of $f(x)$ under $P(\rx)$ \\
-$\displaystyle \Cov(f(x),g(x)) $ & Covariance of $f(x)$ and $g(x)$ under $P(\rx)$\\
-$\displaystyle H(\rx) $ & Shannon entropy of the random variable $\rx$\\
-$\displaystyle \KL ( P \Vert Q ) $ & Kullback-Leibler divergence of P and Q \\
-$\displaystyle \mathcal{N} ( \vx ; \vmu , \mSigma)$ & Gaussian distribution %
-over $\vx$ with mean $\vmu$ and covariance $\mSigma$ \\
-\end{tabular}
-\egroup
-\vspace{0.25cm}
+Figure~\ref{fig:all} places every comparison we ran on one axis, with
+the same configuration run twice as the bottom row. Building this
+benchmark produced findings about the benchmark. We report
+them because several would otherwise have been read as model behaviour.
 
-\centerline{\bf Functions}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{p{1.25in}p{3.25in}}
-$\displaystyle f: \sA \rightarrow \sB$ & The function $f$ with domain $\sA$ and range $\sB$\\
-$\displaystyle f \circ g $ & Composition of the functions $f$ and $g$ \\
-  $\displaystyle f(\vx ; \vtheta) $ & A function of $\vx$ parametrized by $\vtheta$.
-  (Sometimes we write $f(\vx)$ and omit the argument $\vtheta$ to lighten notation) \\
-$\displaystyle \log x$ & Natural logarithm of $x$ \\
-$\displaystyle \sigma(x)$ & Logistic sigmoid, $\displaystyle \frac{1} {1 + \exp(-x)}$ \\
-$\displaystyle \zeta(x)$ & Softplus, $\log(1 + \exp(x))$ \\
-$\displaystyle || \vx ||_p $ & $\normlp$ norm of $\vx$ \\
-$\displaystyle || \vx || $ & $\normltwo$ norm of $\vx$ \\
-$\displaystyle x^+$ & Positive part of $x$, i.e., $\max(0,x)$\\
-$\displaystyle \1_\mathrm{condition}$ & is 1 if the condition is true, 0 otherwise\\
-\end{tabular}
-\egroup
-\vspace{0.25cm}
+\textbf{Most intervention events were our fault.} Before repair, 44\% of
+cases in every row triggered a forced reveal at a rate that barely varied
+across models---a signal belonging to the harness. Decomposed, only
+7--11\% reflected an agent failing a modelled path; the rest were a
+matcher that could not represent a turn containing both a question and a
+proposal, a simulator that fabricated negative results for fixes the case
+never modelled, and a canonical-path search that refused the falsified
+edges most threads pass through, killing half of every run at a median of
+turn 5.
 
+\textbf{Two published findings were rubric artefacts.} A rubric asking
+whether the agent ``proactively gathered info'' scored every model
+0.92--0.97 and supported a conclusion that elicitation was saturated.
+A judge-independent count contradicted it the whole time---premature
+proposals per case run 2.36 to 4.00 across the four models---and under a
+rubric that asks whether the evidence was in hand \emph{before} the
+proposal, the scores track that count at Spearman $-0.80$. Separately, an
+under-specified rubric made two judges score different constructs and
+produced an apparent finding that the tier gap belonged to the judge; it
+did not survive the rubrics being written down.
 
+\textbf{What we now check on every run.} Ten offline simulator
+invariants; a row-integrity reconciliation of transcripts against metrics
+against judgments, flagging when the missing cases are disproportionately
+successes; a validity gate on empty replies; a leak screen; and a rubric
+sanity check against the behavioural counts.
 
-\section{Final instructions}
-Do not change any aspects of the formatting parameters in the style files.
-In particular, do not modify the width or length of the rectangle the text
-should fit into, and do not change font sizes (except perhaps in the
-\textsc{References} section; see below). Please note that pages should be
-numbered.
+\section{Limitations}
 
-\section{Preparing PostScript or PDF files}
+The corpus is machine-drafted and machine-reviewed, with the audit trail
+published. \textbf{The judge was never validated against a human.} Two
+checks stand in its place---a judge from another family reproduces the
+ranking, and the rubrics track a judge-independent count---and neither is
+equivalent; two models agreeing is not correctness. Mitigating this, the
+tier result is also established on judge-free counts alone, so the
+central comparison does not rest on the judge, though the rubric-level
+readings do. Per-case grades are unstable across identical runs (mean
+absolute drift 0.10--0.12), so no claim rests on an individual case.
+\texttt{reached\_terminal} saturates once cases use their full budget and
+is reported as harness health rather than as an agent metric. Threads are
+English-only and from open-source projects.
 
-Please prepare PostScript or PDF files with paper size ``US Letter'', and
-not, for example, ``A4''. The -t
-letter option on dvips will produce US Letter files.
+\section{Release}
 
-Consider directly generating PDF files using \verb+pdflatex+
-(especially if you are a MiKTeX user).
-PDF figures must be substituted for EPS figures, however.
-
-Otherwise, please generate your PostScript and PDF files with the following commands:
-\begin{verbatim}
-dvips mypaper.dvi -t letter -Ppdf -G0 -o mypaper.ps
-ps2pdf mypaper.ps mypaper.pdf
-\end{verbatim}
-
-\subsection{Margins in LaTeX}
-
-Most of the margin problems come from figures positioned by hand using
-\verb+\special+ or other commands. We suggest using the command
-\verb+\includegraphics+
-from the graphicx package. Always specify the figure width as a multiple of
-the line width as in the example below using .eps graphics
-\begin{verbatim}
-   \usepackage[dvips]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.eps}
-\end{verbatim}
-or % Apr 2009 addition
-\begin{verbatim}
-   \usepackage[pdftex]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.pdf}
-\end{verbatim}
-for .pdf graphics.
-See section~4.4 in the graphics bundle documentation (\url{http://www.ctan.org/tex-archive/macros/latex/required/graphics/grfguide.ps})
-
-A number of width problems arise when LaTeX cannot properly hyphenate a
-line. Please give LaTeX hyphenation hints using the \verb+\-+ command.
-
-\subsubsection*{Author Contributions}
-If you'd like to, you may include  a section for author contributions as is done
-in many journals. This is optional and at the discretion of the authors.
-
-\subsubsection*{Acknowledgments}
-Use unnumbered third level headings for the acknowledgments. All
-acknowledgments, including those to funding agencies, go at the end of the paper.
-
+Code under Apache-2.0; the curation layer under CC BY 4.0; thread content
+remains its authors', collected from permissive sources with usernames
+pseudonymised. The 55 drafts that review blocked ship alongside the 229
+released cases, with their findings, so the review layer can be audited
+rather than trusted.
 
 \bibliography{iclr2026_conference}
 \bibliographystyle{iclr2026_conference}
-
-\appendix
-\section{Appendix}
-You may include other additional sections here.
-
 
 \end{document}
