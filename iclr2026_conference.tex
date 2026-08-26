@@ -222,16 +222,24 @@ that state's visible symptoms, authored answers to clarifications the
 agent actually asked, and---when a stall-insurance mechanism fires---a
 reveal that is recorded as such. It is never shown the resolution.
 
-\textbf{The system under test} is a conversational model with no tools,
-no repository access, no execution and no retrieval---it receives the
-leak-free transcript each turn and replies. This is a deliberate
-consequence of the setting rather than a convenience: the cases are other
-people's broken environments, there is no repository that reproduces the
-fault (excluding those is the point), and the user is the only actuator,
-so the model is told it cannot run anything. It follows that our results
-characterise \emph{models placed in a diagnostic loop}, not tool-using
-agent products. The adapter boundary is the benchmark's extension point,
-and wrapping a deployed assistant is the intended way to evaluate one.
+\textbf{Execution-free describes the scoring, not the agent.} What this
+benchmark gives up is the \emph{reproduction environment}: there is no
+container to rebuild and no test suite to run, because the graph is the
+oracle. That is a property of how a transcript is scored, and it places
+no requirement on the system being scored. Whatever the agent can
+do---search, retrieve, open a sandbox, run an experiment of its own
+devising---is part of the capability under measurement, and the harness
+neither grants nor withholds it: an adapter receives the leak-free
+transcript and returns a turn, and what happens in between belongs to
+the agent.
+
+\textbf{What we actually ran} is therefore a baseline rather than the
+benchmark's scope: a plain conversational model with no tools, told that
+the user is the one executing actions (an accurate statement of that
+adapter's situation, which also stops it reporting results it never
+obtained). Four toolless rows establish the floor and isolate elicitation
+from tooling. They do not characterise tool-using assistants, and we
+report no such claim.
 
 \textbf{Matching.} Each agent turn is read for both acts. A question is
 matched against the case's clarifications; a proposal against the current
@@ -498,19 +506,25 @@ less than half the resolution of the comparisons, and every null among
 them should be read as the bound printed in Figure~\ref{fig:all}
 rather than as evidence of no effect.
 \texttt{reached\_terminal} saturates once cases use their full budget and
-is reported as harness health rather than as an agent metric. \textbf{Retrieval is untested, and it is the gap most likely to matter.}
-Deployed diagnostic assistants are typically retrieval-augmented over
-documentation and past tickets. Grounding of exactly that kind is what
-our weakest measured behaviour concerns---the lower tier scores
-0.05--0.09 on staying inside the evidence---so retrieval is the
-intervention with the clearest route to moving the metric we care most
-about, and we have no evidence either way. We did not run it because
-the only corpus available here is the resolved threads themselves, and
-retrieving over those would hand back the answer; a clean external
-knowledge source is required, which we leave to future work. Nothing in
-this paper should be read as a claim about tool-using or
-retrieval-augmented systems. Threads are English-only and from
-open-source projects.
+is reported as harness health rather than as an agent metric. \textbf{A tool-using agent would currently be scored unfairly, and this
+is a defect in the instrument rather than a gap in coverage.} The
+grounding rubric asks how much the agent asserted as established what
+\emph{this conversation} has not established. For a toolless model that
+is the right question: its only evidence is what the user said. For an
+agent that retrieves a release note or reads upstream source, it is the
+wrong one---the agent would be penalised for grounding a correct claim
+in a real source, precisely because the source is not in the dialogue.
+The construct we want is whether a claim is supported by the
+conversation \emph{or by a source the agent cites}, which requires the
+rubric to see the agent's citations and the judge to check them. We did
+not amend it here because changing the construct would invalidate the
+runs this paper reports, so we state the amendment and leave the
+measurement to the next version. Until then the benchmark measures
+elicitation under a toolless condition, and results should not be
+transferred to retrieval-augmented assistants---which is a real
+restriction, since retrieval is the intervention with the clearest route
+to the behaviour where the lower tier collapses. Threads are
+English-only and from open-source projects.
 
 \section{Release}
 
