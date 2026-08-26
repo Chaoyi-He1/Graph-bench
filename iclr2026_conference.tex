@@ -239,7 +239,11 @@ the user is the one executing actions (an accurate statement of that
 adapter's situation, which also stops it reporting results it never
 obtained). Four toolless rows establish the floor and isolate elicitation
 from tooling. They do not characterise tool-using assistants, and we
-report no such claim.
+report no such claim. The release ships a second adapter that drives an
+external agent process---one invocation per turn, restoring its own
+session---so a sandboxed, retrieving or tool-using system can be measured
+by naming it in a command template; we provide the mechanism and no
+results under it.
 
 \textbf{Matching.} Each agent turn is read for both acts. A question is
 matched against the case's clarifications; a proposal against the current
@@ -516,10 +520,14 @@ wrong one---the agent would be penalised for grounding a correct claim
 in a real source, precisely because the source is not in the dialogue.
 The construct we want is whether a claim is supported by the
 conversation \emph{or by a source the agent cites}, which requires the
-rubric to see the agent's citations and the judge to check them. We did
-not amend it here because changing the construct would invalidate the
-runs this paper reports, so we state the amendment and leave the
-measurement to the next version. Until then the benchmark measures
+rubric to see the agent's citations and the judge to check them. The amended rubric ships with the
+benchmark and is selectable, and it treats a citation that cannot be
+checked, or that does not support the claim made from it, as worse than
+an unhedged guess---a fabricated citation manufactures the appearance of
+grounding. We report no results under it: scores from two constructs are
+not comparable, and this paper has already had to retract one finding
+that was exactly that mistake made across two judges. The active profile
+is recorded in every output file for the same reason. Until then the benchmark measures
 elicitation under a toolless condition, and results should not be
 transferred to retrieval-augmented assistants---which is a real
 restriction, since retrieval is the intervention with the clearest route
