@@ -197,10 +197,21 @@ usable as a release gate. Of 29 cases blocked in the first round, 25
 passed after redrafting under hardened rules---their defects came from
 the generation prompt, not from the threads.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.52\textwidth]{figures/f7_interaction_value.pdf}
+\caption{The same model on the same cases, with and without the ability
+to ask. Given the opening report alone it names mechanism and fix class
+in 2.2\% of cases; given the conversation, 28.8\%. The benchmark is
+measuring elicitation, not recall.}
+\label{fig:interaction}
+\end{figure}
+
 \textbf{Not recall-solvable.} Handed the opening report alone, with no
 opportunity to ask anything, a model names both mechanism and fix class
 in 2.2\% of cases (partial credit in a further 3.5\%), with no gradient
-by issue year. The benchmark measures interactive diagnosis, not
+by issue year---against 28.8\% for the same model allowed to converse
+(Figure~\ref{fig:interaction}). The benchmark measures interactive diagnosis, not
 memorisation.
 
 \section{Evaluation Protocol}
@@ -248,7 +259,18 @@ Kimi-2.5 & \textbf{0.279} & 52 (23\%) & 103 (45\%) & 70 (31\%) & 21 & 4.0 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:main} gives the main result. Two tiers separate by
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/f3_outcomes.pdf}
+\caption{How cases end. The tiers differ less in fixes earned than in
+what happens when they fail: Kimi-2.5 exhausts its turn budget on 31\%
+of cases against gpt-5.6's 20\%, while roughly half of every row reaches
+a terminal state only because the stall insurance walked it there.}
+\label{fig:outcomes}
+\end{figure}
+
+Table~\ref{tab:main} gives the main result and
+Figure~\ref{fig:outcomes} its outcome composition. Two tiers separate by
 0.32--0.35 ($t = 32$); within the stronger tier gpt-5.6 leads gpt-5.5 by
 0.050 ($t = 5.3$), and between GLM-5.1 and Kimi-2.5 there is nothing to
 call. Fewer than a third of cases end in a fix the agent earned, and
@@ -304,8 +326,26 @@ never reached a proposal of its own & 20 (67\%) & 23 (77\%) \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/f9_counterfactual.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/f10_judge_swap.pdf}
+\end{minipage}
+\caption{Left: swapping one authored answer does not redirect the agent,
+it stops it---and the collapse is worse in the column where the
+diagnosis was \emph{not} supposed to move. Right: two judges, the same
+transcripts, the same written rubrics. They disagree substantially about
+absolute quality and not at all about the ordering.}
+\label{fig:robust}
+\end{figure}
+
 Changing one answer stops the agent closing the case at all 72\% of the
-time. It does not switch to a different fix; it stops converging---and it
+time (Figure~\ref{fig:robust}, left). It does not switch to a different fix; it stops converging---and it
 derails \emph{more} often when the change was marked as not affecting the
 diagnosis. On the 17 cases that stayed on the rails, five of ten
 interventions that should have changed the fix did.
@@ -314,7 +354,7 @@ interventions that should have changed the fix did.
 
 The primary judge is from the same family as one of the models it ranks.
 Re-judging the same transcripts with GLM-5.1 under identical rubric
-definitions gives gpt-5.6 over Kimi-2.5 at $+0.189$ ($t = 17.7$) against
+definitions (Figure~\ref{fig:robust}, right) gives gpt-5.6 over Kimi-2.5 at $+0.189$ ($t = 17.7$) against
 the primary judge's $+0.345$ ($t = 31.7$). Absolute levels are
 judge-specific; direction, significance and ordering hold.
 
@@ -344,7 +384,17 @@ the same configuration run twice as the bottom row. Building this
 benchmark produced findings about the benchmark. We report
 them because several would otherwise have been read as model behaviour.
 
-\textbf{Most intervention events were our fault.} Before repair, 44\% of
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.66\textwidth]{figures/f4_harness_defects.pdf}
+\caption{Decomposing the benchmark's own intervention events before
+repair. Read as a model metric this looked like agents stalling on half
+of all cases; almost all of it was the instrument.}
+\label{fig:defects}
+\end{figure}
+
+\textbf{Most intervention events were our fault} (Figure~\ref{fig:defects}).
+Before repair, 44\% of
 cases in every row triggered a forced reveal at a rate that barely varied
 across models---a signal belonging to the harness. Decomposed, only
 7--11\% reflected an agent failing a modelled path; the rest were a
@@ -373,6 +423,16 @@ sanity check against the behavioural counts.
 
 \section{Limitations}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.58\textwidth]{figures/f5_reliability.pdf}
+\caption{The same configuration run twice. Per-case grades move enough
+that no claim in this paper rests on an individual case; aggregate
+differences of the size we report survive it, and this is why the ruling
+procedure is a paired test rather than a threshold on the difference.}
+\label{fig:reliability}
+\end{figure}
+
 The corpus is machine-drafted and machine-reviewed, with the audit trail
 published. \textbf{The judge was never validated against a human.} Two
 checks stand in its place---a judge from another family reproduces the
@@ -380,8 +440,9 @@ ranking, and the rubrics track a judge-independent count---and neither is
 equivalent; two models agreeing is not correctness. Mitigating this, the
 tier result is also established on judge-free counts alone, so the
 central comparison does not rest on the judge, though the rubric-level
-readings do. Per-case grades are unstable across identical runs (mean
-absolute drift 0.10--0.12), so no claim rests on an individual case.
+readings do. Per-case grades are unstable across identical runs
+(Figure~\ref{fig:reliability}; mean absolute drift 0.10--0.12), so no
+claim rests on an individual case.
 \texttt{reached\_terminal} saturates once cases use their full budget and
 is reported as harness health rather than as an agent metric. Threads are
 English-only and from open-source projects.
