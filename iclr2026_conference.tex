@@ -119,9 +119,11 @@ own audits are unflattering: $\tau^2$ found its simulator violating its
 instructions in 22\% of one domain's dialogues \citep{tau2bench2025}, and
 swapping simulators moves measured success by up to 9 points
 \citep{lostinsimulation2026}. A simulator conditioned on the resolution
-can leak it, and the leak is invisible in aggregate scores. We constrain
-the simulator with the graph rather than with a prompt, and measure the
-leak directly in Section~\ref{sec:leak}.
+can leak it, and we show in Section~\ref{sec:leak} that such a leak is
+invisible in aggregate scores---so a suite cannot certify its own
+simulator by observing that its numbers look sensible. We constrain the
+simulator with the graph rather than with a prompt, and screen for leaks
+directly.
 
 \textbf{Graph- and state-structured evaluation.} Fault trees
 \citep{jfta2026} and incident graphs \citep{excytin2026} also score
@@ -422,25 +424,31 @@ would defend as a contribution.
 
 Handing the simulator the resolved thread---the transcript-conditioned
 design---produces leaked turns that a lexical screen detects (3 in 916
-against 0 in 913 under our production profile). The grade inflation this
-causes is \emph{not} established at our sample size ($+0.037$, $t = 1.8$,
-$p = 0.19$, $n = 48$), and we report it as such.
+against 0 in 913 under our production profile). Run over the full corpus,
+that leak has \emph{no measurable effect on the grade}: $-0.0114$
+($t = -1.36$, sign $p = 0.64$, $n = 229$), with a 99\% bound of $0.022$.
 
-This is the weakest row in the paper and we would rather state the
-problem than bury it: the benchmark's stated motivation is that
-transcript-conditioned simulation contaminates the dialogue, and our own
-ablation does not reach significance. Three things bear on how to read
-it. The ablation is run at $n=48$, where the smallest detectable
-difference is $0.054$ and the observed effect is $0.037$---so the
-experiment cannot presently distinguish ``no inflation'' from
-``inflation we lack the power to see''. The leak itself is not in doubt
-independently of the grade: leaked turns are directly detected by the
-screen, and a turn in which the user volunteers the fix has changed what
-the transcript \emph{is}, whether or not the judge rewards it. And the
-grade may simply be a poor detector here, since forced reveals already
-supply information the agent did not earn. We take the honest position
-that leak-safety is currently justified by the direct detection of leaks
-and not by an effect on the score.
+We had run this at $n=48$ first, where it gave $+0.037$ against a
+detection bound of $0.054$, and expected the full corpus to resolve a
+suspected shortfall of power. It did not: the effect did not grow, it
+changed sign. The $n=48$ reading was noise, and we report the reversal
+because the earlier number would otherwise stand as a near-miss that
+merely needed more data.
+
+The negative result is more useful to this paper's argument than the
+positive one would have been. A simulator can leak the answer and still
+produce scores statistically indistinguishable from a clean one---the
+leaked turns are demonstrably there, and the aggregate moves by less than
+0.022. It follows that \textbf{an aggregate score cannot be used to
+validate a user simulator}. A benchmark whose evidence of simulator
+fidelity is that its numbers look reasonable has no evidence at all, and
+would not notice contamination of the kind $\tau^2$ found by direct audit
+in 22\% of one domain's dialogues \citep{tau2bench2025}. Leak-safety
+therefore has to come from somewhere the score cannot vouch for: a
+structural guarantee that the simulator can only speak from its current
+node, plus a direct screen for when it does otherwise. That is the
+design this paper argues for, and this experiment is the reason the
+argument cannot rest on scores.
 
 \section{Auditing the Instrument}
 \label{sec:audit}
@@ -449,11 +457,13 @@ and not by an effect on the score.
 \centering
 \includegraphics[width=0.86\textwidth]{figures/f6_all_comparisons.pdf}
 \caption{Every comparison, with a 99\% interval, grouped by what a null
-would mean. A simulator swap that moves nothing is the result we want;
-the leak ablation moving nothing is not. Each null is annotated with the
-effect it can actually exclude---at $n=48$ that bound is $\pm0.06$,
-more than twice the resolution of the $n=229$ rows, so these are bounds
-rather than absences.}
+would mean. A simulator swap that moves nothing is the robustness result
+we want; the leak ablation moving nothing is a finding in its own
+right---at $n=229$ it bounds the grade effect of handing the simulator
+the answer at $0.022$, which is why the score cannot be used to detect
+leakage. Each null is annotated with the effect it can actually exclude;
+the $n=48$ rows bound only at $\pm0.06$, so those are bounds rather than
+absences.}
 \label{fig:all}
 \end{figure}
 
