@@ -269,7 +269,9 @@ misruled in both directions.
 \label{sec:exp}
 
 \begin{table}[t]
-\caption{Four models over all 229 cases, 30 turns.}
+\caption{Four models over the released corpus, 30 turns. GLM-5.1 is
+$n=227$: two cases died on repeated upstream gateway timeouts and are
+excluded rather than scored (see Section~\ref{sec:audit}).}
 \label{tab:main}
 \centering
 \begin{tabular}{lrrrrrr}
@@ -278,7 +280,7 @@ model & grade & resolved & forced walk & ran out & turns & reveals/case \\
 \midrule
 gpt-5.6  & \textbf{0.624} & 66 (29\%) & 110 (48\%) & 45 (20\%) & 21 & 3.1 \\
 gpt-5.5  & \textbf{0.574} & 71 (31\%) & 103 (45\%) & 47 (21\%) & 20 & 2.8 \\
-GLM-5.1  & \textbf{0.303} & 59 (26\%) & 115 (50\%) & 49 (21\%) & 22 & 3.7 \\
+GLM-5.1  & \textbf{0.306} & 59 (26\%) & 115 (51\%) & 49 (22\%) & 22 & 3.7 \\
 Kimi-2.5 & \textbf{0.279} & 52 (23\%) & 103 (45\%) & 70 (31\%) & 21 & 4.0 \\
 \bottomrule
 \end{tabular}
@@ -390,17 +392,20 @@ lifts the lower tier by $+0.12$ to $+0.13$ while barely moving the upper
 ($-0.034$ and $-0.004$), so the tier gap roughly halves. What survives
 is the tier structure. All three cross-tier comparisons are significant
 under both judges (gpt-5.6 over Kimi-2.5: $+0.345$, $t = 31.7$ primary;
-$+0.190$, $t = 17.8$ swapped; gpt-5.5 over GLM-5.1: $+0.271$ and
-$+0.137$).
+$+0.190$, $t = 17.8$ swapped; gpt-5.5 over GLM-5.1: $+0.269$ and
+$+0.134$).
 
-The within-tier orderings do not survive, and we report that rather than
-the convenient half. Each within-tier comparison is called under exactly
-one judge: gpt-5.6 over gpt-5.5 is significant under the primary judge
-($+0.050$, $t = 5.3$) and not under the swapped one ($+0.020$,
-$t = 2.4$), while GLM-5.1 over Kimi-2.5 is called under the swapped
-judge ($+0.032$, $t = 2.8$) and not under the primary ($+0.024$,
-$t = 2.4$). We therefore claim the two tiers, which no judge in our
-experiments disturbs, and decline to rank within them.
+The within-tier orderings are a different matter, and neither is solid
+enough to claim. gpt-5.6 over gpt-5.5 is significant under the primary
+judge ($+0.050$, $t = 5.3$) and not under the swapped one ($+0.020$,
+$t = 2.4$). GLM-5.1 over Kimi-2.5 clears the rule under both
+($t = 2.61$ primary, $t = 3.24$ swapped)---but the primary figure passes
+a $|t| > 2.6$ threshold by $0.005$, which is a decision-boundary
+artefact rather than a finding, and we decline to lean on it. We
+therefore claim the two tiers, which no judge in our experiments
+disturbs, and decline to rank within them. That a hard threshold on a
+continuous statistic can be crossed by five thousandths is a limitation
+of the ruling procedure, not evidence about the models.
 
 \subsection{What the measurement is robust to}
 
@@ -502,6 +507,31 @@ proposal, the scores track that count at Spearman $-0.80$. Separately, an
 under-specified rubric made two judges score different constructs and
 produced an apparent finding that the tier gap belonged to the judge; it
 did not survive the rubrics being written down.
+
+\textbf{A harness failure was being scored as model behaviour, in one row
+only.} Two cases in the GLM-5.1 row produced zero-turn transcripts after
+the upstream gateway timed out, and the judge scored those empty
+transcripts $0.0$ rather than skipping them---so an infrastructure
+failure entered the table as the model's worst possible performance, and
+entered only one of the four rows. The effect is small ($0.303$ against
+a clean $0.306$) and its direction is what matters: it is a
+row-asymmetric penalty, so every comparison involving that row was
+biased by an amount no re-run of the other rows would reveal. We found it
+by auditing termination reasons per row rather than by checking that each
+row had 229 entries, which it did. The two cases fail reproducibly on the
+same upstream timeout across two further attempts, so they are excluded
+and the row is reported at $n=227$ rather than repaired. The judge now
+has an explicit guard, and our reconciliation checks per-row termination
+reasons rather than row totals.
+
+\textbf{A stale summary survived the repair.} Removing those two cases
+from the judgment file did not update its aggregate block, which is
+recomputed only when a case is judged---so the file went on reporting the
+contaminated mean over a case count it no longer contained, and the
+repair script printed that stale number back as if it were the new
+result. Any summary that is cached beside the data it summarises can do
+this. Our checks now recompute every aggregate from the per-case records
+and refuse the file if the two disagree.
 
 \textbf{What we now check on every run.} Ten offline simulator
 invariants; a row-integrity reconciliation of transcripts against metrics
