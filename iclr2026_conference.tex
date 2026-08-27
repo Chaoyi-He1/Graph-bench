@@ -296,7 +296,8 @@ Table~\ref{tab:main} gives the main result and
 Figure~\ref{fig:outcomes} its outcome composition. Two tiers separate by
 0.32--0.35 ($t = 32$); within the stronger tier gpt-5.6 leads gpt-5.5 by
 0.050 ($t = 5.3$), and between GLM-5.1 and Kimi-2.5 there is nothing to
-call. Fewer than a third of cases end in a fix the agent earned, and
+call. Both within-tier readings are judge-dependent and we do not claim
+them---see Section~\ref{sec:judgeswap}. Fewer than a third of cases end in a fix the agent earned, and
 roughly half reach a terminal state only because the insurance walked
 them there.
 
@@ -361,9 +362,10 @@ never reached a proposal of its own & 20 (67\%) & 23 (77\%) \\
 \end{minipage}
 \caption{Left: swapping one authored answer does not redirect the agent,
 it stops it---and the collapse is worse in the column where the
-diagnosis was \emph{not} supposed to move. Right: two judges, the same
-transcripts, the same written rubrics. They disagree substantially about
-absolute quality and not at all about the ordering.}
+diagnosis was \emph{not} supposed to move. Right: all four rows under two
+judges, same transcripts, same written rubrics. They disagree
+substantially about absolute quality; the tier separation survives both
+and the ordering within a tier does not.}
 \label{fig:robust}
 \end{figure}
 
@@ -374,12 +376,29 @@ diagnosis. On the 17 cases that stayed on the rails, five of ten
 interventions that should have changed the fix did.
 
 \subsection{Does the result survive a different judge?}
+\label{sec:judgeswap}
 
 The primary judge is from the same family as one of the models it ranks.
-Re-judging the same transcripts with GLM-5.1 under identical rubric
-definitions (Figure~\ref{fig:robust}, right) gives gpt-5.6 over Kimi-2.5 at $+0.189$ ($t = 17.7$) against
-the primary judge's $+0.345$ ($t = 31.7$). Absolute levels are
-judge-specific; direction, significance and ordering hold.
+Re-judging all four rows with GLM-5.1 under identical rubric definitions
+(Figure~\ref{fig:robust}, right) separates two claims that a single
+comparison would have conflated.
+
+The swapped judge disagrees substantially about absolute quality: it
+lifts the lower tier by $+0.12$ to $+0.13$ while barely moving the upper
+($-0.035$ and $-0.004$), so the tier gap roughly halves. What survives
+is the tier structure. All three cross-tier comparisons are significant
+under both judges (gpt-5.6 over Kimi-2.5: $+0.345$, $t = 31.7$ primary;
+$+0.189$, $t = 17.7$ swapped; gpt-5.5 over GLM-5.1: $+0.271$ and
+$+0.137$).
+
+The within-tier orderings do not survive, and we report that rather than
+the convenient half. Each within-tier comparison is called under exactly
+one judge: gpt-5.6 over gpt-5.5 is significant under the primary judge
+($+0.050$, $t = 5.3$) and not under the swapped one ($+0.019$,
+$t = 2.3$), while GLM-5.1 over Kimi-2.5 is called under the swapped
+judge ($+0.032$, $t = 2.8$) and not under the primary ($+0.024$,
+$t = 2.4$). We therefore claim the two tiers, which no judge in our
+experiments disturbs, and decline to rank within them.
 
 \subsection{What the measurement is robust to}
 
