@@ -409,20 +409,38 @@ of the ruling procedure, not evidence about the models.
 
 \subsection{What the measurement is robust to}
 
-Three interventions move the score by less than the resolution they are
-measured at (Figure~\ref{fig:all}, second group). Two are unremarkable:
-attaching the original screenshots, and raising the turn budget from 20
-to 30. The third is worth stating as a result rather than as an absence.
-Replacing the model that plays the user changes the mean grade by
-$-0.0007$ ($n=48$, bound $0.061$), against a literature finding that
-swapping simulators moves measured success by up to 9 points
-\citep{lostinsimulation2026} and a self-audit in which a prompted
-simulator violated its instructions in 22\% of dialogues
-\citep{tau2bench2025}. We read this as the graph doing the work it was
-introduced to do: when the user's admissible utterances are enumerated
-by the case rather than described to a prompt, the identity of the model
-reading them matters much less. This is the one null in the paper we
-would defend as a contribution.
+\textbf{This section previously claimed that replacing the model playing
+the user changes nothing, and that claim is withdrawn.} It rested on
+$-0.0007$ at $n=48$. Re-run over the full corpus the same intervention
+gives $-0.0251$ ($n=226$, bound $0.021$): swapping the simulator lowers
+the grade by about half as much as gpt-5.6 leads gpt-5.5, an effect this
+paper reports as real.
+
+The two statistics disagree, and the disagreement is itself the finding.
+The paired $t$ clears the threshold ($t = -3.08$) while the sign test does
+not ($p = 0.081$), so under our conjunctive rule the comparison is not
+called. Looking at the distribution explains why: direction is close to
+even (125 cases down, 98 up), but the falls are larger than the rises
+($-0.105$ against $+0.076$). Changing the simulator does not shift every
+case a little; it damages a minority of cases a lot. A rule that requires
+consistency of direction will not register that, which is a limitation of
+the rule rather than evidence of no effect.
+
+What survives is a weaker claim we still think is worth making. The
+literature reports simulator swaps moving measured success by up to
+9 points \citep{lostinsimulation2026}, alongside a self-audit in which a
+prompted simulator violated its instructions in 22\% of dialogues
+\citep{tau2bench2025}. Ours moves 2.5 points. Enumerating the user's
+admissible utterances in the case, rather than describing them to a
+prompt, appears to reduce the simulator's influence substantially---but
+it does not remove it, and we no longer claim that it does.
+
+Two further interventions remain at $n=48$: raising the turn budget from
+20 to 30, and re-running the identical configuration. Both of the arms we
+did re-run at full corpus moved when the sample grew---this one from
+$-0.001$ to $-0.025$, the leak ablation from $+0.037$ to $-0.011$. We
+therefore treat the remaining $n=48$ rows as untested rather than as
+nulls, and mark them as such in Figure~\ref{fig:all}.
 
 \subsection{Leakage}
 \label{sec:leak}
@@ -462,13 +480,14 @@ argument cannot rest on scores.
 \centering
 \includegraphics[width=0.86\textwidth]{figures/f6_all_comparisons.pdf}
 \caption{Every comparison, with a 99\% interval, grouped by what a null
-would mean. A simulator swap that moves nothing is the robustness result
-we want; the leak ablation moving nothing is a finding in its own
-right---at $n=229$ it bounds the grade effect of handing the simulator
-the answer at $0.022$, which is why the score cannot be used to detect
-leakage. Each null is annotated with the effect it can actually exclude;
-the $n=48$ rows bound only at $\pm0.06$, so those are bounds rather than
-absences.}
+would mean. Both rows we re-ran at full corpus moved: the
+simulator swap from $-0.001$ to $-0.025$ (orange---the paired $t$ clears
+our threshold while the sign test does not, so it is not called), and the
+leak ablation to $-0.011$, bounding at $0.022$ the grade effect of handing
+the simulator the answer, which is why the score cannot detect leakage.
+Rows are coloured by the paper's ruling rule rather than by whether the
+interval clears zero. Each uncalled row is annotated with the effect it
+can exclude; the remaining $n=48$ rows exclude only $\pm0.06$.}
 \label{fig:all}
 \end{figure}
 
@@ -532,6 +551,19 @@ repair script printed that stale number back as if it were the new
 result. Any summary that is cached beside the data it summarises can do
 this. Our checks now recompute every aggregate from the per-case records
 and refuse the file if the two disagree.
+
+\textbf{Our own $n=48$ ablations were not trustworthy, and we found out
+by re-running them.} Two of the harness interventions in this paper were
+originally measured on a 48-case variance subset. Re-run over the full
+corpus, both moved: the leak ablation from $+0.037$ to $-0.011$, changing
+sign, and the simulator swap from $-0.0007$ to $-0.025$, turning what we
+had described as a clean null into an effect half the size of a model
+difference we report as real. Neither reversal was a change in the
+benchmark; the smaller sample was simply reporting noise with a bound
+loose enough ($\pm0.06$) to accommodate it. We draw the general lesson
+rather than only fixing the two rows: a null is a claim about a bound,
+and a bound three times wider than the effects under discussion supports
+no claim at all. The remaining $n=48$ rows are reported as untested.
 
 \textbf{What we now check on every run.} Ten offline simulator
 invariants; a row-integrity reconciliation of transcripts against metrics
