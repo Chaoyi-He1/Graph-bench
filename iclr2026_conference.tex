@@ -35,22 +35,28 @@ depends on, avoid the attempts already known to fail, and ground its
 conclusion in what the user actually reported. Existing multi-turn
 benchmarks measure none of this directly: they either require a
 reproducible execution environment---which excludes precisely the
-environment-bound problems users bring---or condition a simulated user on
-the resolved transcript, leaking the answer into the dialogue. We
-annotate 229 resolved public support threads as causal graphs whose nodes
-are (system-state, information-state) pairs and whose edges are
-clarifications, solutions, and attempts the thread itself falsified. The
-same graph constrains a leak-safe user simulator, grounds an
-execution-free judge, and yields metrics that need no model at all. Four
-frontier models separate into two tiers 0.32--0.35 apart, and the split
-reproduces under a judge from a different model family and under
-judge-free counts alone. Two results are less comfortable: on staying
-inside the evidence the strongest models score 0.64--0.71 and the weaker
-pair 0.05--0.09, and when a single authored answer is swapped for a
-plausible alternative, the strongest model stops being able to close the
-case at all 72\% of the time---it does not adapt, it derails. We also
-report what auditing the harness cost: before repair, only 7--11\% of the
-benchmark's own intervention events reflected genuine agent failure.
+environment-bound problems users bring---or script the user with a
+prompt and hope it stays faithful. We annotate 229 resolved public
+support threads as causal graphs whose nodes are (system-state,
+information-state) pairs and whose edges are clarifications, solutions,
+and the attempts each thread itself falsified. The same graph constrains
+the simulated user, grounds an execution-free judge, and yields metrics
+that need no model at all. Four frontier models separate into two tiers
+0.32--0.35 apart; the split survives a judge from a different model
+family and reproduces on judge-free counts, while the ordering
+\emph{within} a tier does not survive either. Two findings are less
+comfortable. On staying inside the evidence the stronger pair scores
+0.64--0.71 and the weaker 0.05--0.09. And when a single authored answer
+is swapped for a plausible alternative, the strongest model stops being
+able to close the case at all 72\% of the time---it does not adapt, it
+derails. A third finding is aimed at benchmark builders rather than at
+models: handing our simulator the resolved thread produces detectably
+leaked turns and yet moves the mean grade by less than 0.022, so an
+aggregate score cannot certify a user simulator, and fidelity has to come
+from structure rather than from numbers that look reasonable. We report
+the audit of our own instrument in the same spirit, including two
+harness defects that were being scored as model behaviour and two
+ablations whose conclusions reversed when we re-ran them at full corpus.
 \end{abstract}
 
 \section{Introduction}
@@ -66,8 +72,11 @@ both lose the thing we want to measure. Execution-grounded suites
 systematically excludes the environment-bound faults real users
 report---drivers, devices, OS integration, account state. Simulated-user
 suites \citep{taubench2024,cab2025} avoid that cost by scripting the
-user, and typically condition the simulator on the resolved thread, so
-the user knows the answer and the dialogue is no longer a diagnosis.
+user, which moves the problem rather than solving it: a simulator that
+has seen the resolution can hand it over, and---as we show in
+Section~\ref{sec:leak}---the aggregate score does not move when it does.
+A suite therefore cannot tell from its own numbers whether its user is
+faithful.
 
 We take a third route. Each case is a resolved public thread annotated as
 a causal graph: nodes are (system-state, information-state) pairs, edges
@@ -90,9 +99,14 @@ Our contributions:
       used.
 \item Results on four frontier models, including a counterfactual
       intervention study that the corpus design uniquely enables.
+\item Evidence that an aggregate score cannot validate a user simulator:
+      a simulator that leaks detectably still scores within 0.022 of a
+      clean one. This is a constraint on how any simulated-user benchmark
+      can argue for its own fidelity, ours included.
 \item An audit of the harness itself. We report the defects we found in
-      our own instrument, and what each was worth, because several of
-      them would have been read as model behaviour.
+      our own instrument and what each was worth---several would have
+      been read as model behaviour---together with two ablations of ours
+      whose conclusions reversed when the sample grew.
 \end{enumerate}
 
 \section{Related Work}
@@ -583,47 +597,53 @@ procedure is a paired test rather than a threshold on the difference.}
 \label{fig:reliability}
 \end{figure}
 
-The corpus is machine-drafted and machine-reviewed, with the audit trail
-published. \textbf{The judge was never validated against a human.} Two
-checks stand in its place---a judge from another family reproduces the
-ranking, and the rubrics track a judge-independent count---and neither is
-equivalent; two models agreeing is not correctness. Mitigating this, the
-tier result is also established on judge-free counts alone, so the
-central comparison does not rest on the judge, though the rubric-level
-readings do. \textbf{The instrument has a resolution, and several of our own
+\textbf{The judge was never validated against a human.} The corpus is
+machine-drafted and machine-reviewed, with the audit trail published, and
+two checks stand in place of human validation: a judge from another
+family reproduces the tier ranking, and the rubrics track a
+judge-independent behavioural count. Neither is equivalent to correctness
+--- two models agreeing is not the same as two models being right. What
+mitigates it is that the tier result is also established on judge-free
+counts alone, so the central comparison does not rest on the judge. The
+rubric-level readings do.
+
+\textbf{The instrument has a resolution, and some of our own
 interventions sit below it.} Per-case grades are unstable across
 identical runs (Figure~\ref{fig:reliability}; mean absolute drift
-0.10--0.12), so no claim rests on an individual case. Aggregated, the
-99\% interval is $\pm0.026$ at $n=229$ and $\pm0.06$ at the $n=48$ used
-for most harness interventions. The model comparisons we report are
-$5$--$13\times$ that floor and are safe; the interventions are tested at
-less than half the resolution of the comparisons, and every null among
-them should be read as the bound printed in Figure~\ref{fig:all}
-rather than as evidence of no effect.
-\texttt{reached\_terminal} saturates once cases use their full budget and
-is reported as harness health rather than as an agent metric. \textbf{A tool-using agent would currently be scored unfairly, and this
+0.10--0.12), so no claim here rests on an individual case. Aggregated,
+the 99\% interval is about $\pm0.025$ at full corpus and $\pm0.06$ on
+the 48-case subset. The model comparisons run $5$--$13\times$ the
+full-corpus floor and are safe. The harness interventions are not all in
+that position: we re-ran two of them at full corpus and both changed
+conclusion, so the two that remain on 48 cases are reported as untested
+rather than as nulls.
+
+\textbf{A tool-using agent would currently be scored unfairly, and that
 is a defect in the instrument rather than a gap in coverage.} The
 grounding rubric asks how much the agent asserted as established what
 \emph{this conversation} has not established. For a toolless model that
-is the right question: its only evidence is what the user said. For an
-agent that retrieves a release note or reads upstream source, it is the
-wrong one---the agent would be penalised for grounding a correct claim
-in a real source, precisely because the source is not in the dialogue.
-The construct we want is whether a claim is supported by the
-conversation \emph{or by a source the agent cites}, which requires the
-rubric to see the agent's citations and the judge to check them. The amended rubric ships with the
-benchmark and is selectable, and it treats a citation that cannot be
-checked, or that does not support the claim made from it, as worse than
-an unhedged guess---a fabricated citation manufactures the appearance of
-grounding. We report no results under it: scores from two constructs are
-not comparable, and this paper has already had to retract one finding
-that was exactly that mistake made across two judges. The active profile
-is recorded in every output file for the same reason. Until then the benchmark measures
-elicitation under a toolless condition, and results should not be
-transferred to retrieval-augmented assistants---which is a real
-restriction, since retrieval is the intervention with the clearest route
-to the behaviour where the lower tier collapses. Threads are
-English-only and from open-source projects.
+is the right question, since the dialogue is its only evidence. For an
+agent that retrieves a release note or reads upstream source it is the
+wrong one: the agent is penalised for grounding a correct claim in a real
+source, precisely because the source is not in the dialogue. The amended
+construct---supported by the conversation \emph{or} by a source the agent
+cites, with an uncheckable citation counted as worse than an unhedged
+guess---ships with the benchmark and is selectable. We report no results
+under it, because scores from two constructs are not comparable and this
+paper has already had to retract one finding that was that mistake made
+across two judges; the active profile is recorded in every output file
+for the same reason. Until a tool-using arm is run under it, these
+results describe elicitation in a toolless condition and should not be
+transferred to retrieval-augmented assistants---a real restriction, since
+retrieval is the intervention with the clearest route to the behaviour
+where the lower tier collapses.
+
+\textbf{Scope.} \texttt{reached\_terminal} saturates once cases use their
+full budget and is reported as harness health rather than as an agent
+metric. Two cases in the GLM-5.1 row and three in the simulator-swap arm
+fail reproducibly on an upstream gateway timeout and are excluded, so
+those rows are $n=227$ and $n=226$. Threads are English-only and drawn
+from open-source projects.
 
 \section{Release}
 
