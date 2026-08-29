@@ -615,6 +615,7 @@ released cases, with their findings, so the review layer can be audited
 rather than trusted.
 
 \section*{Model access and version pinning}
+\label{sec:access}
 
 All four systems were reached through a single hosted OpenAI-compatible
 gateway, so the comparison is internally consistent: identical harness,
@@ -628,6 +629,56 @@ pin the precise revision behind the ``gpt-5.6'' and ``gpt-5.5'' rows.
 Readers should treat the model names as labels for the endpoints we
 measured rather than as verifiable version claims, and the released
 transcripts---not the model names---as the reproducible artifact.
+
+\subsubsection*{Reproducibility Statement}
+
+The benchmark, the 229 released cases, the harness, and every transcript
+and judgment file behind the tables here are released together; the
+scripts that produce each figure read those files directly, so every
+number in this paper can be recomputed from the artifact. Case outcomes,
+turn counts, forced reveals and premature proposals are deterministic
+functions of a transcript and need no model to reproduce. Two things are
+not reproducible in the strict sense and we would rather name them than
+imply otherwise. Model replies are sampled, so a re-run does not
+reproduce a transcript; per-case grades drift by 0.10--0.12 in mean
+absolute terms across identical runs, which is why every claim here is an
+aggregate over the corpus and why the ruling procedure is a paired test.
+And the two GPT endpoints we measured expose no snapshot identifier
+(Section~\ref{sec:access}), so those rows can be re-run but not pinned to
+a fixed model revision.
+
+\subsubsection*{Ethics Statement}
+
+The corpus is built from public bug trackers and issue threads under
+permissive terms, and we redistribute thread content rather than
+re-hosting private data. Usernames are pseudonymised and the curation
+layer is released separately from the thread text so that the annotation
+can be reused without the identities. The people who wrote these threads
+were reporting bugs, not volunteering for a benchmark; we therefore
+restrict the release to sources whose licences permit redistribution,
+carry the original attribution, and will honour removal requests for
+individual threads. The cases describe software faults and their fixes
+and we see no dual-use concern beyond that. The benchmark measures
+diagnostic dialogue and should not be read as a safety evaluation: a
+model can score well here and still be unsafe to deploy in a support
+role.
+
+\subsubsection*{Use of Large Language Models}
+
+LLMs are not an incidental writing aid in this work; they are part of the
+instrument, and we describe where. Each case in the corpus was
+\emph{drafted} by a model from the source thread and then \emph{reviewed}
+by a two-stage model process that files findings and independently
+verifies them, with schema validators and structural lints as hard gates.
+No case was authored by a human annotator, and the judge that produces
+the rubric scores is itself a model. This is the central limitation of
+the corpus and is discussed as such rather than buried: we release the 55
+drafts that review rejected alongside the 229 that passed, so the review
+layer can be audited rather than trusted. The simulated user is likewise
+model-driven, constrained by the graph. In preparing the manuscript, an
+LLM was used for drafting and editing prose and for writing analysis
+code; the experimental design, the decisions about what to claim and what
+to withdraw, and the final text are the authors' responsibility.
 
 \bibliography{iclr2026_conference}
 \bibliographystyle{iclr2026_conference}
