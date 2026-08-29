@@ -112,6 +112,38 @@ Our contributions:
 \section{Related Work}
 \label{sec:related}
 
+\begin{table}[t]
+\caption{Where this benchmark sits. \emph{Real threads}: cases derived
+from support or issue threads rather than synthesised. \emph{No
+execution}: scoring needs no reproduction environment. \emph{Structured
+oracle}: progress is scored against an explicit state structure rather
+than a final artifact or a linear checkpoint list. \emph{Falsified
+attempts}: the paths the source case tried and ruled out are annotated as
+first-class edges.}
+\label{tab:related}
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & real threads & no execution & structured oracle & falsified attempts \\
+\midrule
+SWE-bench \citep{swebench2024}          & \checkmark & & & \\
+CAB \citep{cab2025}                     & \checkmark & & & \\
+Dialogue SWE-Bench \citep{dialogueswe2026} & \checkmark & & & \\
+CirrusBench \citep{cirrusbench2026}     & \checkmark & & partial & \\
+$\tau$/$\tau^2$ \citep{taubench2024,tau2bench2025} & & \checkmark & \checkmark & \\
+JFTA-Bench \citep{jfta2026}             & & \checkmark & \checkmark & \\
+ExCyTIn \citep{excytin2026}             & \checkmark & \checkmark & \checkmark & \\
+\midrule
+This work                               & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:related} places the neighbours on four axes. Each holds
+some of them; the combination is what is unoccupied, and the fourth
+column is the one nothing else has.
+
 \textbf{Execution-grounded agent benchmarks.} SWE-bench
 \citep{swebench2024} and its descendants score a patch against a test
 suite. This is decisive where it applies and inapplicable where
@@ -193,15 +225,7 @@ meaningful (Section~\ref{sec:cf}).
 \section{Corpus}
 \label{sec:corpus}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/f8_corpus.pdf}
-\caption{Corpus shape. Most evidence a resolution depends on has to be
-asked for: 79\% of clarifications are L3.}
-\label{fig:corpus}
-\end{figure}
-
-The corpus (Figure~\ref{fig:corpus}) holds 229 released cases across 78
+The corpus (Figure~\ref{fig:corpus}, Appendix) holds 229 released cases across 78
 repositories, the largest contributing 4.8\%, drawn from Mozilla
 Bugzilla, PostgreSQL, and permissive-license GitHub repositories, threads
 created 2021--2026 (median 37 messages). Per-case structure and the full
@@ -724,6 +748,14 @@ present in roughly two thirds of the corpus and is what makes a
 counterfactual intervention well posed. The 229 cases come from 78
 distinct repositories with the largest contributing 11 cases (4.8\%);
 no single project dominates.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/f8_corpus.pdf}
+\caption{Corpus shape. Most evidence a resolution depends on has to be
+asked for: 79\% of clarifications are L3.}
+\label{fig:corpus}
+\end{figure}
 
 \section{Supporting figures}
 
