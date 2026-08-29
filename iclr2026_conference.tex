@@ -513,27 +513,35 @@ against 0 in 913 under our production profile). Run over the full corpus,
 that leak has \emph{no measurable effect on the grade}: $-0.0114$
 ($t = -1.36$, sign $p = 0.64$, $n = 229$), with a 99\% bound of $0.022$.
 
-We had run this at $n=48$ first, where it gave $+0.037$ against a
-detection bound of $0.054$, and expected the full corpus to resolve a
-suspected shortfall of power. It did not: the effect did not grow, it
-changed sign. The $n=48$ reading was noise, and we report the reversal
-because the earlier number would otherwise stand as a near-miss that
-merely needed more data.
+We ran this at $n=48$ first, where it gave $+0.037$ against a bound of
+$0.054$, and expected more data to settle a shortfall of power. It did
+not: the effect changed sign rather than growing. We report the reversal
+because the earlier number would otherwise stand as a near-miss awaiting
+more data.
+
+If the score cannot detect a leak, the defence has to be tested
+behaviourally instead. We run a scripted \emph{cheater} that opens with
+leading questions fishing for future knowledge---what the fix turned out
+to be, what the engineer eventually found---and then behaves exactly like
+the never-ask \emph{blind} profile. Under the production simulator the
+229 fishing turns matched a real graph edge 7 times (3\%): the simulator
+declined to answer what its current node does not license. The cheater
+ends up $0.035$ below blind rather than above it, because the fishing
+burns turns and buys nothing. That is the guarantee stated as a
+behaviour rather than as a property of the prompt.
 
 The negative result is more useful to this paper's argument than the
 positive one would have been. A simulator can leak the answer and still
 produce scores statistically indistinguishable from a clean one---the
 leaked turns are demonstrably there, and the aggregate moves by less than
-0.022. It follows that \textbf{an aggregate score cannot be used to
-validate a user simulator}. A benchmark whose evidence of simulator
-fidelity is that its numbers look reasonable has no evidence at all, and
-would not notice contamination of the kind $\tau^2$ found by direct audit
-in 22\% of one domain's dialogues \citep{tau2bench2025}. Leak-safety
-therefore has to come from somewhere the score cannot vouch for: a
-structural guarantee that the simulator can only speak from its current
-node, plus a direct screen for when it does otherwise. That is the
-design this paper argues for, and this experiment is the reason the
-argument cannot rest on scores.
+0.022. It follows that \textbf{an aggregate score cannot validate a user
+simulator}. A benchmark whose evidence of fidelity is that its numbers
+look reasonable has no evidence, and would not notice contamination of
+the kind $\tau^2$ found by direct audit in 22\% of one domain's dialogues
+\citep{tau2bench2025}. Leak-safety has to come from somewhere the score
+cannot vouch for: a structural guarantee plus a direct screen---which is
+the design this paper argues for, and this experiment is why the argument
+cannot rest on scores.
 
 \section{Auditing the Instrument}
 \label{sec:audit}
@@ -676,15 +684,14 @@ from open-source projects.
 Diagnosing a fault with a person is mostly the work of finding out what
 is true, and a benchmark for it has to score the finding-out rather than
 the final artifact. Annotating each resolved thread as a causal graph
-buys three things at once: the simulated user is constrained by structure
-instead of by instruction, several metrics become deterministic, and---
-because the graph records what \emph{could} have happened rather than
-what did---a counterfactual intervention becomes well posed. What we
-find with it is that frontier models separate into two tiers by any of
-three independent routes, that the separation is driven by proposing
-fixes from positions the case does not support, and that conditioning on
-what the user said is fragile enough that changing one answer stops the
-strongest model converging on two cases in three.
+buys three things: the simulated user is constrained by structure rather
+than by instruction, several metrics become mechanical, and---because the
+graph records what \emph{could} have happened rather than what did---a
+counterfactual intervention becomes well posed. We find that frontier
+models separate into two tiers, that the separation is driven by
+proposing fixes from positions the case does not support, and that
+changing one authored answer stops the strongest model converging on two
+cases in three.
 
 The result we would most like other benchmark builders to take is the
 uncomfortable one: our leaking simulator scored within 0.022 of the clean
@@ -692,11 +699,8 @@ one while leaking detectably, so a suite cannot use its own numbers as
 evidence that its user is faithful. We tried to hold ourselves to that
 standard, which is why the audit reports two harness defects that were
 being scored as model behaviour and two of our own ablations whose
-conclusions reversed when the sample grew.
-
-Code ships under Apache-2.0 and the curation layer under CC BY 4.0. The
-55 drafts review blocked ship beside the 229 released cases, with their
-findings, so the review layer can be audited rather than trusted.
+conclusions reversed when the sample grew, and why the 55 drafts review
+blocked ship beside the 229 released cases with their findings.
 
 \subsubsection*{Reproducibility Statement}
 
@@ -717,6 +721,7 @@ a fixed model revision.
 
 \subsubsection*{Ethics Statement}
 
+Code is released under Apache-2.0 and the curation layer under CC BY 4.0.
 The corpus is built from public bug trackers and issue threads under
 permissive terms, and we redistribute thread content rather than
 re-hosting private data. Usernames are pseudonymised and the curation
