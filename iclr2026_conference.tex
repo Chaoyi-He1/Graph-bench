@@ -582,14 +582,12 @@ and the row is reported at $n=227$ rather than repaired. The judge now
 has an explicit guard, and our reconciliation checks per-row termination
 reasons rather than row totals.
 
-\textbf{A stale summary survived the repair.} Removing those two cases
-from the judgment file did not update its aggregate block, which is
-recomputed only when a case is judged---so the file went on reporting the
-contaminated mean over a case count it no longer contained, and the
-repair script printed that stale number back as if it were the new
-result. Any summary that is cached beside the data it summarises can do
-this. Our checks now recompute every aggregate from the per-case records
-and refuse the file if the two disagree.
+\textbf{A stale summary survived the repair.} Dropping those cases did
+not update the judgment file's cached aggregate---recomputed only when a
+case is judged---so it kept reporting the contaminated mean over a count
+it no longer held, and the repair printed that back as the new result.
+Our checks now recompute every aggregate from the per-case records and
+refuse the file when the two disagree.
 
 \textbf{Our own $n=48$ ablations were not trustworthy, and we found out
 by re-running them.} Two of the harness interventions in this paper were
@@ -598,11 +596,10 @@ corpus, both moved: the leak ablation from $+0.037$ to $-0.011$, changing
 sign, and the simulator swap from $-0.0007$ to $-0.025$, turning what we
 had described as a clean null into an effect half the size of a model
 difference we report as real. Neither reversal was a change in the
-benchmark; the smaller sample was simply reporting noise with a bound
-loose enough ($\pm0.06$) to accommodate it. We draw the general lesson
-rather than only fixing the two rows: a null is a claim about a bound,
-and a bound three times wider than the effects under discussion supports
-no claim at all. The remaining $n=48$ rows are reported as untested.
+benchmark: the smaller sample was reporting noise inside a bound
+($\pm0.06$) loose enough to hold it. A null is a claim about a bound, and
+a bound three times wider than the effects under discussion supports no
+claim at all; the remaining $n=48$ rows are reported as untested.
 
 \textbf{What we now check on every run.} Ten offline simulator
 invariants; a row-integrity reconciliation of transcripts against metrics
@@ -660,29 +657,35 @@ fail reproducibly on an upstream gateway timeout and are excluded, so
 those rows are $n=227$ and $n=226$. Threads are English-only and drawn
 from open-source projects.
 
-\section{Release}
+\section{Conclusion and release}
 
-Code under Apache-2.0; the curation layer under CC BY 4.0; thread content
-remains its authors', collected from permissive sources with usernames
-pseudonymised. The 55 drafts that review blocked ship alongside the 229
-released cases, with their findings, so the review layer can be audited
-rather than trusted.
+Diagnosing a fault with a person is mostly the work of finding out what
+is true, and a benchmark for it has to score the finding-out rather than
+the final artifact. Annotating each resolved thread as a causal graph
+buys three things at once: the simulated user is constrained by structure
+instead of by instruction, several metrics become deterministic, and---
+because the graph records what \emph{could} have happened rather than
+what did---a counterfactual intervention becomes well posed. What we
+find with it is that frontier models separate into two tiers by any of
+three independent routes, that the separation is driven by proposing
+fixes from positions the case does not support, and that conditioning on
+what the user said is fragile enough that changing one answer stops the
+strongest model converging on two cases in three.
 
-\section*{Model access and version pinning}
-\label{sec:access}
+The result we would most like other benchmark builders to take is the
+uncomfortable one. Our leaking simulator scored within 0.022 of the clean
+one while leaking detectably, so a suite cannot use its own numbers as
+evidence that its user is faithful; that has to be argued from structure
+and checked directly. We tried to hold ourselves to the same standard,
+which is why the audit section reports the two harness defects that were
+being scored as model behaviour and the two of our own ablations whose
+conclusions reversed when the sample grew.
 
-All four systems were reached through a single hosted OpenAI-compatible
-gateway, so the comparison is internally consistent: identical harness,
-identical prompts, identical judge. Exact versions are only partly
-pinnable, and we state which. Two endpoints resolve to reportable model
-identifiers (\texttt{kimi-k2.5}; a vendor-hosted GLM-5.1 deployment,
-which may differ from the stock release and which we name as
-``GLM-5.1'' only for readability). The two GPT endpoints return an
-opaque deployment identifier and expose no snapshot string, so we cannot
-pin the precise revision behind the ``gpt-5.6'' and ``gpt-5.5'' rows.
-Readers should treat the model names as labels for the endpoints we
-measured rather than as verifiable version claims, and the released
-transcripts---not the model names---as the reproducible artifact.
+Code ships under Apache-2.0 and the curation layer under CC BY 4.0;
+thread content remains its authors', collected from permissive sources
+with usernames pseudonymised. The 55 drafts that review blocked ship
+alongside the 229 released cases, with their findings, so the review
+layer can be audited rather than trusted.
 
 \subsubsection*{Reproducibility Statement}
 
@@ -738,6 +741,22 @@ to withdraw, and the final text are the authors' responsibility.
 \bibliographystyle{iclr2026_conference}
 
 \appendix
+\section{Model access and version pinning}
+\label{sec:access}
+
+All four systems were reached through a single hosted OpenAI-compatible
+gateway, so the comparison is internally consistent: identical harness,
+identical prompts, identical judge. Exact versions are only partly
+pinnable, and we state which. Two endpoints resolve to reportable model
+identifiers (\texttt{kimi-k2.5}; a vendor-hosted GLM-5.1 deployment,
+which may differ from the stock release and which we name as
+``GLM-5.1'' only for readability). The two GPT endpoints return an
+opaque deployment identifier and expose no snapshot string, so we cannot
+pin the precise revision behind the ``gpt-5.6'' and ``gpt-5.5'' rows.
+Readers should treat the model names as labels for the endpoints we
+measured rather than as verifiable version claims, and the released
+transcripts---not the model names---as the reproducible artifact.
+
 \section{Corpus statistics}
 \label{app:corpus}
 
