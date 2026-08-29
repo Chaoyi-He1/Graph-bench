@@ -91,7 +91,7 @@ with no model in the loop.
 Our contributions:
 
 \begin{enumerate}
-\item A DSL and a corpus: 229 released cases over 75 projects, each
+\item A DSL and a corpus: 229 released cases over 78 repositories, each
       machine-validated and passed by a two-stage model review, with the
       falsified attempts annotated as first-class structure.
 \item An evaluation protocol whose central comparison does not depend on
@@ -201,10 +201,11 @@ asked for: 79\% of clarifications are L3.}
 \label{fig:corpus}
 \end{figure}
 
-The corpus (Figure~\ref{fig:corpus}) holds 229 released cases across 75
-projects, no project exceeding 4\% of the corpus, drawn from Mozilla
+The corpus (Figure~\ref{fig:corpus}) holds 229 released cases across 78
+repositories, the largest contributing 4.8\%, drawn from Mozilla
 Bugzilla, PostgreSQL, and permissive-license GitHub repositories, threads
-created 2021--2026 (median 37 messages). Cases are drafted by a model
+created 2021--2026 (median 37 messages). Per-case structure and the full
+breakdown are in Appendix~\ref{app:corpus}. Cases are drafted by a model
 from the thread and gated by schema validators and structural lints; a
 two-stage review then files findings and independently verifies them.
 Single-pass review refuses roughly 95\% of cases, mostly on claims its
@@ -262,6 +263,13 @@ per case are deterministic given the transcript. On top of these, four
 LLM rubrics---asks for evidence before proposing, stays inside the
 evidence, accounts for the fault, recovers from a failed step---combine
 with the graph-supplied grounding rate into a single \texttt{grade}.
+
+\textbf{Cost.} A full row is 229 cases at a median of 20 agent turns, and
+the agent call dominates: median latency 105\,s per turn, 117--257
+agent-hours per row depending on the model. The four-row main table cost
+about 650 agent-hours of wall time, run six cases at a time. Token counts
+are not available---the gateway we measured through returns none---so we
+report latency, which is what a replicator will actually queue for.
 
 \textbf{Ruling on a difference.} Per-case grades are paired across arms.
 A difference is called real only when $|t| > 2.6$ \emph{and} a two-sided
@@ -684,6 +692,39 @@ to withdraw, and the final text are the authors' responsibility.
 \bibliographystyle{iclr2026_conference}
 
 \appendix
+\section{Corpus statistics}
+\label{app:corpus}
+
+\begin{table}[h]
+\caption{Per-case structure of the 229 released graphs. Counts are over
+the released corpus and are recomputable from the artifact.}
+\label{tab:corpus}
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+ & mean & median & max & total \\
+\midrule
+states (nodes)            & 6.2 & 6 & 10 & 1416 \\
+transitions (edges)       & 5.4 & 5 &  9 & 1234 \\
+clarifications            & 5.5 & 5 & 18 & 1268 \\
+solution edges            & 2.5 & 2 &  7 &  575 \\
+known-blind edges         & 0.9 & 1 &  5 &  216 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Edges are 659 clarification-only, 555 solution-only, and 20 mixed.
+Clarifications carry an obtainability level: 17\% \textbf{L1} (any user
+volunteers it), 4\% \textbf{L2} (inferable from what is already on the
+table), and 79\% \textbf{L3} (must be asked for or measured)---the
+distribution behind the claim that most evidence a resolution depends on
+has to be elicited. 147 cases (64\%) contain at least one known-blind
+edge, so the falsified-attempt structure is not a rare decoration: it is
+present in roughly two thirds of the corpus and is what makes a
+counterfactual intervention well posed. The 229 cases come from 78
+distinct repositories with the largest contributing 11 cases (4.8\%);
+no single project dominates.
+
 \section{Supporting figures}
 
 These four figures support claims made in the main text and are
