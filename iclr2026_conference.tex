@@ -41,7 +41,7 @@ support threads as causal graphs whose nodes are (system-state,
 information-state) pairs and whose edges are clarifications, solutions,
 and the attempts each thread itself falsified. The same graph constrains
 the simulated user, grounds an execution-free judge, and yields metrics
-that need no model at all. Four frontier models separate into two tiers
+that need no rubric. Four frontier models separate into two tiers
 0.32--0.35 apart; the split survives a judge from a different model
 family and reproduces on judge-free counts, while the ordering
 \emph{within} a tier does not survive either. Two findings are less
@@ -85,8 +85,8 @@ and attempts this thread tried and falsified. The graph is an answer key,
 not a transcript to replay. The same object then does three jobs: it
 bounds what the simulated user may say (it speaks only from its current
 node), it gives an execution-free judge something to score against, and
-it makes several metrics deterministic---derivable from the transcript
-with no model in the loop.
+it makes several metrics mechanical---read off the transcript against
+the graph rather than scored by a rubric.
 
 Our contributions:
 
@@ -283,7 +283,7 @@ which required information the agent held at that moment, by level.
 
 \textbf{Metrics.} Case outcomes (\texttt{terminal\_resolved}, forced
 walk, ran out), turns, forced reveals per case, and premature proposals
-per case are deterministic given the transcript. On top of these, four
+per case are read off the transcript against the graph rather than scored by a rubric. They are not model-free: the matcher deciding whether a turn asks, proposes or both, and which out-edge it hits, is itself an LLM call (Section~\ref{sec:matcherdep}). On top of these, four
 LLM rubrics---asks for evidence before proposing, stays inside the
 evidence, accounts for the fault, recovers from a failed step---combine
 with the graph-supplied grounding rate into a single \texttt{grade}.
@@ -342,15 +342,16 @@ conversations do not support in nearly every case.
 
 The tier result would be weak if it existed only inside an LLM judge, so
 we ask whether it survives with the judge removed entirely. Two per-case
-quantities need no model to compute: forced reveals, and \emph{premature
+quantities need no rubric to compute: forced reveals, and \emph{premature
 proposals}---replies matched as a solution while the conversation sits at
 a state whose graph offers no solution edge, meaning the agent proposed a
 fix from a position where the case affords none. Both are functions of a
 transcript and the graph alone.
 
 \begin{table}[h]
-\caption{Premature proposals per case: no judge, no rubric, no model in
-the loop. The partition is the one Table~\ref{tab:main} reports.}
+\caption{Premature proposals per case: no judge and no rubric, though the
+matcher underneath is still a model (Section~\ref{sec:matcherdep}). The
+partition is the one Table~\ref{tab:main} reports.}
 \label{tab:judgefree}
 \centering
 \small
@@ -370,12 +371,27 @@ Kimi-2.5 & 4.00 & gpt-5.6 $<$ gpt-5.5  & $-0.14$ & $-0.82$ & not called \\
 Table~\ref{tab:judgefree} gives the result. All three cross-tier
 comparisons separate; neither within-tier comparison does. That is the
 partition the graded results produce and the partition the swapped judge
-produces, arrived at here by counting rather than scoring. Three
-routes---the primary judge, a judge from another family, and no judge at
-all---agree on where the line falls, and all three decline to rank inside
-a tier. The weaker pair proposes a fix from a state that affords none
-about 1.6 times more often per case, which is the behaviour the tier gap
-is made of.
+produces, arrived at here by counting rather than scoring. The weaker
+pair proposes a fix from a state that affords none about 1.6 times more
+often per case, which is the behaviour the tier gap is made of.
+
+\subsection{What this removes, and what it does not}
+\label{sec:matcherdep}
+
+It removes the judge, not every model. Whether a turn asks or proposes,
+and which out-edge it hits, is decided by an LLM matcher; the counts
+above are mechanical given those decisions, not given the raw text. The
+release also carries a deterministic keyword-and-overlap matcher used as
+an offline fallback, and re-deriving this table with it does \emph{not}
+reproduce the partition---it marks roughly four times as many proposals
+premature and reorders the models. We read that as a fact about the
+fallback, which was written as a network-free stand-in rather than a
+validated alternative; but it means we cannot claim this result is
+independent of the matcher. What we can say is that two judges from
+different families agree, and that both read turns segmented by the same
+matcher. Establishing the tier result under a competent model-free
+matcher is future work, and we would rather name the shared dependency
+than let ``no judge'' be read as ``no model''.
 
 \subsection{Counterfactual interventions}
 \label{sec:cf}
@@ -694,7 +710,7 @@ and judgment file behind the tables here are released together; the
 scripts that produce each figure read those files directly, so every
 number in this paper can be recomputed from the artifact. Case outcomes,
 turn counts, forced reveals and premature proposals are deterministic
-functions of a transcript and need no model to reproduce. Two things are
+turn counts, forced reveals and premature proposals are mechanical functions of a transcript, a graph, and the matcher. Two things are
 not reproducible in the strict sense and we would rather name them than
 imply otherwise. Model replies are sampled, so a re-run does not
 reproduce a transcript; per-case grades drift by 0.10--0.12 in mean
