@@ -305,7 +305,9 @@ misruled in both directions.
 \label{sec:exp}
 
 \begin{table}[t]
-\caption{Four models over the released corpus, 30 turns. GLM-5.1 is
+\caption{Four models over the released corpus, 30 turns, bracketed by two
+scripted agents that read the graph directly (Section~\ref{sec:validity}).
+The lower tier sits below the agent that asks nothing. GLM-5.1 is
 $n=227$: two cases died on repeated upstream gateway timeouts and are
 excluded rather than scored (see Section~\ref{sec:audit}).}
 \label{tab:main}
@@ -314,10 +316,14 @@ excluded rather than scored (see Section~\ref{sec:audit}).}
 \toprule
 model & grade & resolved & forced walk & ran out & turns & reveals/case \\
 \midrule
+\emph{conservative} (asks all) & \emph{0.813} & 210 (92\%) & 5 (2\%) & 0 (0\%) & 8 & 0.0 \\
+\midrule
 gpt-5.6  & \textbf{0.624} & 66 (29\%) & 110 (48\%) & 45 (20\%) & 21 & 3.1 \\
 gpt-5.5  & \textbf{0.574} & 71 (31\%) & 103 (45\%) & 47 (21\%) & 20 & 2.8 \\
 GLM-5.1  & \textbf{0.306} & 59 (26\%) & 115 (51\%) & 49 (22\%) & 22 & 3.7 \\
 Kimi-2.5 & \textbf{0.279} & 52 (23\%) & 103 (45\%) & 70 (31\%) & 21 & 4.0 \\
+\midrule
+\emph{blind} (asks none) & \emph{0.426} & 169 (74\%) & 47 (21\%) & 6 (3\%) & 6 & 0.9 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -393,6 +399,35 @@ matcher. Establishing the tier result under a competent model-free
 matcher is future work, and we would rather name the shared dependency
 than let ``no judge'' be read as ``no model''.
 
+\subsection{What the numbers mean: a ceiling and a floor}
+\label{sec:validity}
+
+A grade of 0.62 is uninterpretable without knowing what is achievable. We
+therefore run scripted agents whose behaviour is fixed by construction
+and read against the graph, not against a model. \emph{Conservative}
+walks the canonical path and asks every clarification before proposing;
+\emph{blind} never asks anything---it burns the edges this thread already
+falsified, then guesses down the solutions. Both are deterministic, and Table~\ref{tab:main} brackets the model rows
+with them.
+
+Two things follow. First the metrics behave as designed: the profile that
+asks everything grounds at 0.989 and proposes prematurely 0.004 times per
+case, the profile that asks nothing grounds at 0.358 and proposes
+prematurely 0.49 times ($t = -24.2$ and $8.3$ paired). The scale is
+anchored, and gpt-5.6 sits about halfway up it, capturing half the
+headroom between asking nothing and asking everything.
+
+Second, and less comfortably for the lower tier: GLM-5.1 and Kimi-2.5
+score \emph{below} the never-ask floor, by $0.12$ and $0.15$ with
+$|t| > 11$. Failing to elicit does not explain this---the floor already
+fails to elicit, and does better. What separates them is what they do
+instead: the blind script proposes rarely and says little, while the
+lower-tier models propose from unsupported states four times per case and
+assert conclusions the conversation does not carry (their
+\emph{hallucination} scores in Figure~\ref{fig:rubrics}). On this
+benchmark, confidently proposing without evidence is worse than
+proposing almost nothing.
+
 \subsection{Counterfactual interventions}
 \label{sec:cf}
 
@@ -401,41 +436,7 @@ answer the reporter could plausibly have given, marked with whether the
 right fix changes as a result. Replaying a case with one answer swapped
 asks whether the agent is conditioning on what the user said. Drawing 60
 interventions only from cases whose baseline run closes unaided gives
-Table~\ref{tab:cf}:
-
-\begin{table}[h]
-\caption{One authored answer swapped, gpt-5.6, $n=60$.}
-\label{tab:cf}
-\centering
-\begin{tabular}{lrr}
-\toprule
- & fix should change & fix should not change \\
-\midrule
-proposed something different & \textbf{5 (17\%)} & 2 (7\%) \\
-proposed the same thing & 5 (17\%) & \textbf{5 (17\%)} \\
-never reached a proposal of its own & 20 (67\%) & 23 (77\%) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{figure}[t]
-\centering
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/f9_counterfactual.pdf}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\includegraphics[width=\textwidth]{figures/f10_judge_swap.pdf}
-\end{minipage}
-\caption{Left: swapping one authored answer does not redirect the agent,
-it stops it---and the collapse is worse in the column where the
-diagnosis was \emph{not} supposed to move. Right: all four rows under two
-judges, same transcripts, same written rubrics. They disagree
-substantially about absolute quality; the tier separation survives both
-and the ordering within a tier does not.}
-\label{fig:robust}
-\end{figure}
+Figure~\ref{fig:robust} (left):
 
 Changing one answer stops the agent closing the case at all 72\% of the
 time (Figure~\ref{fig:robust}, left). It does not switch to a different fix; it stops converging---and it
@@ -820,6 +821,25 @@ asked for: 79\% of clarifications are L3.}
 \caption{The tiers separate on all four rubrics and never cross. The
 deepest gap is staying inside the evidence.}
 \label{fig:rubrics}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/f9_counterfactual.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{figures/f10_judge_swap.pdf}
+\end{minipage}
+\caption{Left: swapping one authored answer does not redirect the agent,
+it stops it---and the collapse is worse in the column where the
+diagnosis was \emph{not} supposed to move. Right: all four rows under two
+judges, same transcripts, same written rubrics. They disagree
+substantially about absolute quality; the tier separation survives both
+and the ordering within a tier does not.}
+\label{fig:robust}
 \end{figure}
 
 \section{Supporting figures}
