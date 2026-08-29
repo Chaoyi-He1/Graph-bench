@@ -9,8 +9,8 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 
-\title{Diagnosis Without Execution: Causal-Graph Cases for\\
-Multi-Turn Debugging Agents}
+\title{Diagnosis Without Execution:\\
+Causal-Graph Cases for Multi-Turn Debugging Agents}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the \iclrfinalcopy macro remains commented out below.
@@ -213,16 +213,6 @@ usable as a release gate. Of 29 cases blocked in the first round, 25
 passed after redrafting under hardened rules---their defects came from
 the generation prompt, not from the threads.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.52\textwidth]{figures/f7_interaction_value.pdf}
-\caption{The same model on the same cases, with and without the ability
-to ask. Given the opening report alone it names mechanism and fix class
-in 2.2\% of cases; given the conversation, 28.8\%. The benchmark is
-measuring elicitation, not recall.}
-\label{fig:interaction}
-\end{figure}
-
 \textbf{Not recall-solvable.} Handed the opening report alone, with no
 opportunity to ask anything, a model names both mechanism and fix class
 in 2.2\% of cases (partial credit in a further 3.5\%), with no gradient
@@ -299,16 +289,6 @@ Kimi-2.5 & \textbf{0.279} & 52 (23\%) & 103 (45\%) & 70 (31\%) & 21 & 4.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.82\textwidth]{figures/f3_outcomes.pdf}
-\caption{How cases end. The tiers differ less in fixes earned than in
-what happens when they fail: Kimi-2.5 exhausts its turn budget on 31\%
-of cases against gpt-5.6's 20\%, while roughly half of every row reaches
-a terminal state only because the stall insurance walked it there.}
-\label{fig:outcomes}
-\end{figure}
 
 Table~\ref{tab:main} gives the main result and
 Figure~\ref{fig:outcomes} its outcome composition. Two tiers separate by
@@ -510,15 +490,6 @@ the same configuration run twice as the bottom row. Building this
 benchmark produced findings about the benchmark. We report
 them because several would otherwise have been read as model behaviour.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.66\textwidth]{figures/f4_harness_defects.pdf}
-\caption{Decomposing the benchmark's own intervention events before
-repair. Read as a model metric this looked like agents stalling on half
-of all cases; almost all of it was the instrument.}
-\label{fig:defects}
-\end{figure}
-
 \textbf{Most intervention events were our fault} (Figure~\ref{fig:defects}).
 Before repair, 44\% of
 cases in every row triggered a forced reveal at a rate that barely varied
@@ -586,16 +557,6 @@ successes; a validity gate on empty replies; a leak screen; and a rubric
 sanity check against the behavioural counts.
 
 \section{Limitations}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.58\textwidth]{figures/f5_reliability.pdf}
-\caption{The same configuration run twice. Per-case grades move enough
-that no claim in this paper rests on an individual case; aggregate
-differences of the size we report survive it, and this is why the ruling
-procedure is a paired test rather than a threshold on the difference.}
-\label{fig:reliability}
-\end{figure}
 
 \textbf{The judge was never validated against a human.} The corpus is
 machine-drafted and machine-reviewed, with the audit trail published, and
@@ -670,5 +631,51 @@ transcripts---not the model names---as the reproducible artifact.
 
 \bibliography{iclr2026_conference}
 \bibliographystyle{iclr2026_conference}
+
+\appendix
+\section{Supporting figures}
+
+These four figures support claims made in the main text and are
+placed here for space.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/f3_outcomes.pdf}
+\caption{How cases end. The tiers differ less in fixes earned than in
+what happens when they fail: Kimi-2.5 exhausts its turn budget on 31\%
+of cases against gpt-5.6's 20\%, while roughly half of every row reaches
+a terminal state only because the stall insurance walked it there.}
+\label{fig:outcomes}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.66\textwidth]{figures/f4_harness_defects.pdf}
+\caption{Decomposing the benchmark's own intervention events before
+repair. Read as a model metric this looked like agents stalling on half
+of all cases; almost all of it was the instrument.}
+\label{fig:defects}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.58\textwidth]{figures/f5_reliability.pdf}
+\caption{The same configuration run twice. Per-case grades move enough
+that no claim in this paper rests on an individual case; aggregate
+differences of the size we report survive it, and this is why the ruling
+procedure is a paired test rather than a threshold on the difference.}
+\label{fig:reliability}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.52\textwidth]{figures/f7_interaction_value.pdf}
+\caption{The same model on the same cases, with and without the ability
+to ask. Given the opening report alone it names mechanism and fix class
+in 2.2\% of cases; given the conversation, 28.8\%. The benchmark is
+measuring elicitation, not recall.}
+\label{fig:interaction}
+\end{figure}
+
 
 \end{document}
