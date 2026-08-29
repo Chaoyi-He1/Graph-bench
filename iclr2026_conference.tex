@@ -331,29 +331,51 @@ them---see Section~\ref{sec:judgeswap}. Fewer than a third of cases end in a fix
 roughly half reach a terminal state only because the insurance walked
 them there.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.86\textwidth]{figures/f2_rubrics.pdf}
-\caption{The tiers separate on all four rubrics and never cross. The
-deepest gap is staying inside the evidence.}
-\label{fig:rubrics}
-\end{figure}
-
 \subsection{Where the weaker tier loses}
 
-Figure~\ref{fig:rubrics} localises the gap. It is not confined to any one
+Figure~\ref{fig:rubrics} (Appendix) localises the gap. It is not confined to any one
 rubric, and the largest is \emph{staying inside the evidence}: the GPT
 pair scores 0.64--0.71, the other two 0.05--0.09---asserting what their
 conversations do not support in nearly every case.
 
 \subsection{The central comparison does not need the judge}
 
-Two per-case counts involve no model scoring: forced reveals, and
-proposals made from a state whose graph offers no solution edge. Paired
-across the same 229 cases, every cross-tier comparison separates
-(premature proposals $+1.41$ and $+1.64$, $t = 6.7$ and $6.9$) and every
-within-tier comparison does not---the same partition
-Table~\ref{tab:main} reports, obtained by counting rather than scoring.
+The tier result would be weak if it existed only inside an LLM judge, so
+we ask whether it survives with the judge removed entirely. Two per-case
+quantities need no model to compute: forced reveals, and \emph{premature
+proposals}---replies matched as a solution while the conversation sits at
+a state whose graph offers no solution edge, meaning the agent proposed a
+fix from a position where the case affords none. Both are functions of a
+transcript and the graph alone.
+
+\begin{table}[h]
+\caption{Premature proposals per case: no judge, no rubric, no model in
+the loop. The partition is the one Table~\ref{tab:main} reports.}
+\label{tab:judgefree}
+\centering
+\small
+\begin{tabular}{lr@{\hskip 2.5em}lrrl}
+\toprule
+model & per case & comparison & difference & $t$ & ruling \\
+\midrule
+gpt-5.6  & 2.36 & gpt-5.6 $<$ Kimi-2.5 & $+1.64$ & $6.95$ & real \\
+gpt-5.5  & 2.22 & gpt-5.6 $<$ GLM-5.1  & $+1.44$ & $6.89$ & real \\
+GLM-5.1  & 3.79 & gpt-5.5 $<$ GLM-5.1  & $+1.57$ & $7.40$ & real \\
+Kimi-2.5 & 4.00 & gpt-5.6 $<$ gpt-5.5  & $-0.14$ & $-0.82$ & not called \\
+         &      & GLM-5.1 $<$ Kimi-2.5 & $+0.19$ & $0.83$ & not called \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:judgefree} gives the result. All three cross-tier
+comparisons separate; neither within-tier comparison does. That is the
+partition the graded results produce and the partition the swapped judge
+produces, arrived at here by counting rather than scoring. Three
+routes---the primary judge, a judge from another family, and no judge at
+all---agree on where the line falls, and all three decline to rank inside
+a tier. The weaker pair proposes a fix from a state that affords none
+about 1.6 times more often per case, which is the behaviour the tier gap
+is made of.
 
 \subsection{Counterfactual interventions}
 \label{sec:cf}
@@ -755,6 +777,14 @@ no single project dominates.
 \caption{Corpus shape. Most evidence a resolution depends on has to be
 asked for: 79\% of clarifications are L3.}
 \label{fig:corpus}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.86\textwidth]{figures/f2_rubrics.pdf}
+\caption{The tiers separate on all four rubrics and never cross. The
+deepest gap is staying inside the evidence.}
+\label{fig:rubrics}
 \end{figure}
 
 \section{Supporting figures}
