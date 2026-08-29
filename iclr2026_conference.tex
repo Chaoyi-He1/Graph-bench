@@ -419,14 +419,11 @@ headroom between asking nothing and asking everything.
 
 Second, and less comfortably for the lower tier: GLM-5.1 and Kimi-2.5
 score \emph{below} the never-ask floor, by $0.12$ and $0.15$ with
-$|t| > 11$. Failing to elicit does not explain this---the floor already
-fails to elicit, and does better. What separates them is what they do
-instead: the blind script proposes rarely and says little, while the
-lower-tier models propose from unsupported states four times per case and
-assert conclusions the conversation does not carry (their
-\emph{hallucination} scores in Figure~\ref{fig:rubrics}). On this
-benchmark, confidently proposing without evidence is worse than
-proposing almost nothing.
+$|t| > 11$. Failing to elicit does not explain this---the floor also
+fails to elicit and does better. What differs is what they do instead:
+they propose from unsupported states four times per case and assert what
+the conversation does not carry. Confidently proposing without evidence
+is worse here than proposing almost nothing.
 
 \subsection{Counterfactual interventions}
 \label{sec:cf}
@@ -690,19 +687,16 @@ what the user said is fragile enough that changing one answer stops the
 strongest model converging on two cases in three.
 
 The result we would most like other benchmark builders to take is the
-uncomfortable one. Our leaking simulator scored within 0.022 of the clean
+uncomfortable one: our leaking simulator scored within 0.022 of the clean
 one while leaking detectably, so a suite cannot use its own numbers as
-evidence that its user is faithful; that has to be argued from structure
-and checked directly. We tried to hold ourselves to the same standard,
-which is why the audit section reports the two harness defects that were
-being scored as model behaviour and the two of our own ablations whose
+evidence that its user is faithful. We tried to hold ourselves to that
+standard, which is why the audit reports two harness defects that were
+being scored as model behaviour and two of our own ablations whose
 conclusions reversed when the sample grew.
 
-Code ships under Apache-2.0 and the curation layer under CC BY 4.0;
-thread content remains its authors', collected from permissive sources
-with usernames pseudonymised. The 55 drafts that review blocked ship
-alongside the 229 released cases, with their findings, so the review
-layer can be audited rather than trusted.
+Code ships under Apache-2.0 and the curation layer under CC BY 4.0. The
+55 drafts review blocked ship beside the 229 released cases, with their
+findings, so the review layer can be audited rather than trusted.
 
 \subsubsection*{Reproducibility Statement}
 
