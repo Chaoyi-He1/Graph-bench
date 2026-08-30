@@ -45,18 +45,16 @@ that need no rubric. Four frontier models separate into two tiers
 0.32--0.35 apart; the split survives a judge from a different model
 family and reproduces on judge-free counts, while the ordering
 \emph{within} a tier does not survive either. Two findings are less
-comfortable. On staying inside the evidence the stronger pair scores
-0.64--0.71 and the weaker 0.05--0.09. And when a single authored answer
-is swapped for a plausible alternative, the strongest model stops being
-able to close the case at all 72\% of the time---it does not adapt, it
-derails. A third finding is aimed at benchmark builders rather than at
-models: handing our simulator the resolved thread produces detectably
-leaked turns and yet moves the mean grade by less than 0.022, so an
-aggregate score cannot certify a user simulator, and fidelity has to come
-from structure rather than from numbers that look reasonable. We report
-the audit of our own instrument in the same spirit, including two
-harness defects that were being scored as model behaviour and two
-ablations whose conclusions reversed when we re-ran them at full corpus.
+comfortable. Scripted agents bracket the scale, and the weaker pair
+scores \emph{below} an agent that asks no questions at all. And swapping
+one authored answer for a plausible alternative stops the strongest model
+closing the case at all 72\% of the time---it does not adapt, it derails. A third finding is aimed at benchmark builders: handing our
+simulator the resolved thread produces detectably leaked turns and yet
+moves the mean grade by less than 0.022, so an aggregate score cannot
+certify a user simulator. We audit our own instrument in the same
+spirit---two harness defects were being scored as model behaviour, two
+ablations reversed at full corpus, and one rubric turns out to reward
+saying nothing.
 \end{abstract}
 
 \section{Introduction}
@@ -112,37 +110,10 @@ Our contributions:
 \section{Related Work}
 \label{sec:related}
 
-\begin{table}[t]
-\caption{Where this benchmark sits. \emph{Real threads}: cases derived
-from support or issue threads rather than synthesised. \emph{No
-execution}: scoring needs no reproduction environment. \emph{Structured
-oracle}: progress is scored against an explicit state structure rather
-than a final artifact or a linear checkpoint list. \emph{Falsified
-attempts}: the paths the source case tried and ruled out are annotated as
-first-class edges.}
-\label{tab:related}
-\centering
-\small
-\begin{tabular}{lcccc}
-\toprule
- & real threads & no execution & structured oracle & falsified attempts \\
-\midrule
-SWE-bench \citep{swebench2024}          & \checkmark & & & \\
-CAB \citep{cab2025}                     & \checkmark & & & \\
-Dialogue SWE-Bench \citep{dialogueswe2026} & \checkmark & & & \\
-CirrusBench \citep{cirrusbench2026}     & \checkmark & & partial & \\
-$\tau$/$\tau^2$ \citep{taubench2024,tau2bench2025} & & \checkmark & \checkmark & \\
-JFTA-Bench \citep{jfta2026}             & & \checkmark & \checkmark & \\
-ExCyTIn \citep{excytin2026}             & \checkmark & \checkmark & \checkmark & \\
-\midrule
-This work                               & \checkmark & \checkmark & \checkmark & \checkmark \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table~\ref{tab:related} places the neighbours on four axes. Each holds
-some of them; the combination is what is unoccupied, and the fourth
-column is the one nothing else has.
+Table~\ref{tab:related} in the appendix places the neighbours on four
+axes---real threads, no execution, a structured oracle, and annotated
+falsified attempts. Each holds some; the combination is unoccupied, and
+the fourth is the one nothing else has.
 
 \textbf{Execution-grounded agent benchmarks.} SWE-bench
 \citep{swebench2024} and its descendants score a patch against a test
@@ -425,6 +396,33 @@ they propose from unsupported states four times per case and assert what
 the conversation does not carry. Confidently proposing without evidence
 is worse here than proposing almost nothing.
 
+\subsection{The grade rewards silence}
+\label{sec:silence}
+
+The same construction supports a sharper test. \emph{Expert} and
+\emph{gambler} take \emph{identical} actions---both skip the asking and
+fire the same solutions---and differ in one respect: the expert states
+the inference it is relying on, drawn from the case's own annotation, so
+the reasoning it displays is correct by construction. Any metric that
+claims to reward explanation should separate them, and no other metric
+should move.
+
+It does not. Grounding does not move ($+0.005$, $t=0.9$), confirming the
+actions are identical. But \emph{explanation} moves $+0.016$ and misses
+our threshold ($t=2.4$), while \emph{hallucination} moves $+0.207$
+against the expert ($t=13.6$) and \emph{proactiveness} $-0.078$
+($t=-7.6$). Stating correct reasoning costs $0.060$ of grade
+($t=-11.6$): \textbf{the silent agent outscores the explaining one}.
+
+The cause is the construct, not the judge. \emph{Hallucination} asks what
+\emph{this conversation} established, so an inference the agent brings to
+it reads as assertion beyond the record even when the case certifies it.
+That is the defect we identify for retrieval-augmented agents
+(Section~\ref{sec:limits}), reached here with no tools at all: it is not
+about citations but about any correct reasoning sourced from outside the
+dialogue. We report \emph{explanation} as not validated, and the amended
+construct shipped with the release targets this as much as tool use.
+
 \subsection{Counterfactual interventions}
 \label{sec:cf}
 
@@ -630,6 +628,7 @@ successes; a validity gate on empty replies; a leak screen; and a rubric
 sanity check against the behavioural counts.
 
 \section{Limitations}
+\label{sec:limits}
 
 \textbf{The judge was never validated against a human.} The corpus is
 machine-drafted and machine-reviewed, with the audit trail published, and
@@ -673,11 +672,8 @@ retrieval is the intervention with the clearest route to the behaviour
 where the lower tier collapses.
 
 \textbf{Scope.} \texttt{reached\_terminal} saturates once cases use their
-full budget and is reported as harness health rather than as an agent
-metric. Two cases in the GLM-5.1 row and three in the simulator-swap arm
-fail reproducibly on an upstream gateway timeout and are excluded, so
-those rows are $n=227$ and $n=226$. Threads are English-only and drawn
-from open-source projects.
+budget and is reported as harness health, not as an agent metric. Threads
+are English-only and from open-source projects.
 
 \section{Conclusion and release}
 
@@ -694,13 +690,10 @@ changing one authored answer stops the strongest model converging on two
 cases in three.
 
 The result we would most like other benchmark builders to take is the
-uncomfortable one: our leaking simulator scored within 0.022 of the clean
+uncomfortable one: our leaking simulator scored within 0.022 of a clean
 one while leaking detectably, so a suite cannot use its own numbers as
-evidence that its user is faithful. We tried to hold ourselves to that
-standard, which is why the audit reports two harness defects that were
-being scored as model behaviour and two of our own ablations whose
-conclusions reversed when the sample grew, and why the 55 drafts review
-blocked ship beside the 229 released cases with their findings.
+evidence that its user is faithful. Section~\ref{sec:audit} applies the
+same scepticism to our own instrument.
 
 \subsubsection*{Reproducibility Statement}
 
@@ -772,6 +765,34 @@ pin the precise revision behind the ``gpt-5.6'' and ``gpt-5.5'' rows.
 Readers should treat the model names as labels for the endpoints we
 measured rather than as verifiable version claims, and the released
 transcripts---not the model names---as the reproducible artifact.
+
+\begin{table}[t]
+\caption{Where this benchmark sits. \emph{Real threads}: cases derived
+from support or issue threads rather than synthesised. \emph{No
+execution}: scoring needs no reproduction environment. \emph{Structured
+oracle}: progress is scored against an explicit state structure rather
+than a final artifact or a linear checkpoint list. \emph{Falsified
+attempts}: the paths the source case tried and ruled out are annotated as
+first-class edges.}
+\label{tab:related}
+\centering
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & real threads & no execution & structured oracle & falsified attempts \\
+\midrule
+SWE-bench \citep{swebench2024}          & \checkmark & & & \\
+CAB \citep{cab2025}                     & \checkmark & & & \\
+Dialogue SWE-Bench \citep{dialogueswe2026} & \checkmark & & & \\
+CirrusBench \citep{cirrusbench2026}     & \checkmark & & partial & \\
+$\tau$/$\tau^2$ \citep{taubench2024,tau2bench2025} & & \checkmark & \checkmark & \\
+JFTA-Bench \citep{jfta2026}             & & \checkmark & \checkmark & \\
+ExCyTIn \citep{excytin2026}             & \checkmark & \checkmark & \checkmark & \\
+\midrule
+This work                               & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Corpus statistics}
 \label{app:corpus}
