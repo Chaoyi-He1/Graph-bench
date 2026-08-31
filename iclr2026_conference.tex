@@ -602,13 +602,6 @@ and the row is reported at $n=227$ rather than repaired. The judge now
 has an explicit guard, and our reconciliation checks per-row termination
 reasons rather than row totals.
 
-\textbf{A stale summary survived the repair.} Dropping those cases did
-not update the judgment file's cached aggregate---recomputed only when a
-case is judged---so it kept reporting the contaminated mean over a count
-it no longer held, and the repair printed that back as the new result.
-Our checks now recompute every aggregate from the per-case records and
-refuse the file when the two disagree.
-
 \textbf{Our own $n=48$ ablations were not trustworthy, and we found out
 by re-running them.} Two of the harness interventions in this paper were
 originally measured on a 48-case variance subset. Re-run over the full
@@ -620,6 +613,17 @@ benchmark: the smaller sample was reporting noise inside a bound
 ($\pm0.06$) loose enough to hold it. A null is a claim about a bound, and
 a bound three times wider than the effects under discussion supports no
 claim at all; the remaining $n=48$ rows are reported as untested.
+
+\textbf{The grade resolves less than four rubrics suggest.} Over 914
+case-rows the rubrics correlate at $|\rho| = 0.58$--$0.74$, so the grade
+is nearer one dimension than four; with \emph{explanation} also shown
+above not to respond to explaining, a single model's rubric profile is
+not four separable competencies. Grade tracks conversation length
+($\rho \approx -0.47$), expected but worth stating. Difficulty, though,
+is \emph{not} explained by graph size---nodes, edges, L3 clarifications
+and known-blind edges each correlate with mean grade at $|\rho| < 0.09$,
+and the hardest and easiest quartiles are structurally near-identical
+while differing by 0.25 in grade.
 
 \textbf{What we now check on every run.} Ten offline simulator
 invariants; a row-integrity reconciliation of transcripts against metrics
@@ -677,23 +681,17 @@ are English-only and from open-source projects.
 
 \section{Conclusion and release}
 
-Diagnosing a fault with a person is mostly the work of finding out what
-is true, and a benchmark for it has to score the finding-out rather than
-the final artifact. Annotating each resolved thread as a causal graph
-buys three things: the simulated user is constrained by structure rather
-than by instruction, several metrics become mechanical, and---because the
-graph records what \emph{could} have happened rather than what did---a
-counterfactual intervention becomes well posed. We find that frontier
-models separate into two tiers, that the separation is driven by
-proposing fixes from positions the case does not support, and that
-changing one authored answer stops the strongest model converging on two
-cases in three.
-
-The result we would most like other benchmark builders to take is the
-uncomfortable one: our leaking simulator scored within 0.022 of a clean
-one while leaking detectably, so a suite cannot use its own numbers as
-evidence that its user is faithful. Section~\ref{sec:audit} applies the
-same scepticism to our own instrument.
+Diagnosing a fault with a person is the work of finding out what is true,
+and a benchmark for it has to score the finding-out rather than the final
+artifact. Annotating each resolved thread as a causal graph constrains
+the simulated user by structure rather than instruction, makes several
+metrics mechanical, and---because the graph records what \emph{could}
+have happened---makes a counterfactual intervention well posed. Frontier
+models separate into two tiers, driven by proposing fixes from positions
+the case does not support. The result we would most like other benchmark
+builders to take, though, is the uncomfortable one: our leaking simulator
+scored within 0.022 of a clean one while leaking detectably, so a suite
+cannot use its own numbers as evidence that its user is faithful.
 
 \subsubsection*{Reproducibility Statement}
 
@@ -750,6 +748,16 @@ to withdraw, and the final text are the authors' responsibility.
 \bibliographystyle{iclr2026_conference}
 
 \appendix
+\section{Additional audit findings}
+\label{app:audit}
+
+\textbf{A stale summary survived the repair.} Dropping those cases did
+not update the judgment file's cached aggregate---recomputed only when a
+case is judged---so it kept reporting the contaminated mean over a count
+it no longer held, and the repair printed that back as the new result.
+Our checks now recompute every aggregate from the per-case records and
+refuse the file when the two disagree.
+
 \section{Model access and version pinning}
 \label{sec:access}
 
