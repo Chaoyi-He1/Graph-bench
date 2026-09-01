@@ -634,64 +634,61 @@ sanity check against the behavioural counts.
 \section{Limitations}
 \label{sec:limits}
 
-\textbf{The judge was never validated against a human.} The corpus is
-machine-drafted and machine-reviewed, with the audit trail published, and
-two checks stand in place of human validation: a judge from another
-family reproduces the tier ranking, and the rubrics track a
-judge-independent behavioural count. Neither is equivalent to correctness
---- two models agreeing is not the same as two models being right. What
-mitigates it is that the tier result is also established on judge-free
-counts alone, so the central comparison does not rest on the judge. The
-rubric-level readings do.
+\textbf{The judge was never validated against a human.} This is the
+paper's largest gap. The corpus is machine-drafted and machine-reviewed
+with the audit trail published, and the judge is a model; nothing here
+establishes that its scores are \emph{right}. Neighbouring work does
+better on exactly this axis---CAB reports 65.9\% judge--human agreement
+\citep{cab2025}---and we have no comparable number.
+
+We can bound the other side. Re-judging the same transcripts with the
+same judge moves the per-case grade by $0.026$ on average ($r=0.97$,
+$n=229$; $0.023$, $r=0.98$ on the lower-scoring row, so reliability does
+not depend on where a model sits). At $n=229$ that contributes about
+$0.002$ to any corpus mean, and it is already inside the paired standard
+deviation the $t$-tests use. It also decomposes the per-case instability
+reported above: of the $0.10$--$0.12$ drift between identical runs,
+$0.026$ is the judge and the rest is the agent's sampling. \emph{Hallucination} is
+the least self-consistent rubric ($0.089$, $r=0.84$) and carries our
+most-cited rubric reading, which we flag rather than discount. So
+reliability is not the problem---validity is, and self-agreement cannot
+speak to it: two passes of one model can be wrong together.
 
 \textbf{The instrument has a resolution, and some of our own
-interventions sit below it.} Per-case grades are unstable across
-identical runs (Figure~\ref{fig:reliability}; mean absolute drift
-0.10--0.12), so no claim here rests on an individual case. Aggregated,
-the 99\% interval is about $\pm0.025$ at full corpus and $\pm0.06$ on
-the 48-case subset. The model comparisons run $5$--$13\times$ the
-full-corpus floor and are safe. The harness interventions are not all in
-that position: we re-ran two of them at full corpus and both changed
-conclusion, so the two that remain on 48 cases are reported as untested
+interventions sit below it.} No claim here rests on an individual case
+(Figure~\ref{fig:reliability}). Aggregated, the 99\% interval is about
+$\pm0.025$ at full corpus and $\pm0.06$ on the 48-case subset; the model
+comparisons run $5$--$13\times$ the full-corpus floor and are safe. The
+harness interventions are not: we re-ran two at full corpus and both
+changed conclusion, so the two still on 48 cases are reported as untested
 rather than as nulls.
 
-\textbf{A tool-using agent would currently be scored unfairly, and that
-is a defect in the instrument rather than a gap in coverage.} The
-grounding rubric asks how much the agent asserted as established what
-\emph{this conversation} has not established. For a toolless model that
-is the right question, since the dialogue is its only evidence. For an
-agent that retrieves a release note or reads upstream source it is the
-wrong one: the agent is penalised for grounding a correct claim in a real
-source, precisely because the source is not in the dialogue. The amended
-construct---supported by the conversation \emph{or} by a source the agent
-cites, with an uncheckable citation counted as worse than an unhedged
-guess---ships with the benchmark and is selectable. We report no results
-under it, because scores from two constructs are not comparable and this
-paper has already had to retract one finding that was that mistake made
-across two judges; the active profile is recorded in every output file
-for the same reason. Until a tool-using arm is run under it, these
-results describe elicitation in a toolless condition and should not be
-transferred to retrieval-augmented assistants---a real restriction, since
-retrieval is the intervention with the clearest route to the behaviour
-where the lower tier collapses.
-
-\textbf{Scope.} \texttt{reached\_terminal} saturates once cases use their
-budget and is reported as harness health, not as an agent metric. Threads
-are English-only and from open-source projects.
+\textbf{A tool-using agent would be scored unfairly.}
+Section~\ref{sec:silence} shows the grounding construct penalising correct
+reasoning brought from outside the dialogue, measured with no tools at
+all; an agent that cites a release note is the same case. The amended
+construct---supported by the conversation \emph{or} by a checkable
+citation, with an uncheckable one counted worse than an unhedged
+guess---ships with the release and is selectable, but we report no
+results under it, since scores from two constructs are not comparable and
+this paper already had to retract one finding that was that mistake made
+across two judges. These results describe elicitation in a
+toolless condition and should not be transferred to retrieval-augmented
+assistants.
 
 \section{Conclusion and release}
 
 Diagnosing a fault with a person is the work of finding out what is true,
-and a benchmark for it has to score the finding-out rather than the final
-artifact. Annotating each resolved thread as a causal graph constrains
-the simulated user by structure rather than instruction, makes several
-metrics mechanical, and---because the graph records what \emph{could}
-have happened---makes a counterfactual intervention well posed. Frontier
-models separate into two tiers, driven by proposing fixes from positions
-the case does not support. The result we would most like other benchmark
-builders to take, though, is the uncomfortable one: our leaking simulator
-scored within 0.022 of a clean one while leaking detectably, so a suite
-cannot use its own numbers as evidence that its user is faithful.
+so a benchmark for it must score the finding-out, not the final artifact.
+Annotating each thread as a causal graph constrains the simulated user by
+structure rather than instruction, makes several metrics mechanical, and
+---because the graph records what \emph{could} have happened---makes a
+counterfactual intervention well posed. Frontier models split into two
+tiers, driven by proposing fixes from positions the case does not
+support. The result we would most like other builders to take, though, is
+the uncomfortable one: a simulator that leaks detectably still scored
+within 0.022 of a clean one, so a suite cannot use its own numbers as
+evidence that its user is faithful.
 
 \subsubsection*{Reproducibility Statement}
 
@@ -722,7 +719,10 @@ were reporting bugs, not volunteering for a benchmark; we therefore
 restrict the release to sources whose licences permit redistribution,
 carry the original attribution, and will honour removal requests for
 individual threads. The cases describe software faults and their fixes
-and we see no dual-use concern beyond that. The benchmark measures
+and we see no dual-use concern beyond that. Coverage is bounded in ways
+worth stating: threads are English-only and from open-source projects, so
+the corpus speaks to that population and not to proprietary or
+non-English support traffic. The benchmark measures
 diagnostic dialogue and should not be read as a safety evaluation: a
 model can score well here and still be unsafe to deploy in a support
 role.
